@@ -30,6 +30,9 @@ export default function Home() {
               <Link href="/drift">
                 <Button variant="ghost">Drift</Button>
               </Link>
+              <Link href="/history">
+                <Button variant="ghost">Histórico</Button>
+              </Link>
             </nav>
           </div>
         </div>

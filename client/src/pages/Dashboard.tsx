@@ -36,6 +36,7 @@ export default function Dashboard() {
               <Link href="/models"><Button variant="ghost">Modelos</Button></Link>
               <Link href="/predictions"><Button variant="ghost">Predições</Button></Link>
               <Link href="/drift"><Button variant="ghost">Drift</Button></Link>
+              <Link href="/history"><Button variant="ghost">Histórico</Button></Link>
             </nav>
           </div>
         </div>
@@ -114,6 +115,9 @@ export default function Dashboard() {
               </Link>
               <Link href="/drift">
                 <Button className="w-full" variant="outline">Monitorar Drift</Button>
+              </Link>
+              <Link href="/history">
+                <Button className="w-full" variant="outline">Ver Histórico</Button>
               </Link>
             </CardContent>
           </Card>

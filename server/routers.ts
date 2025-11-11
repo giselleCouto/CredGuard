@@ -94,6 +94,58 @@ export const appRouter = router({
       return await db.getAllPredictions();
     }),
     
+    history: publicProcedure
+      .input(z.object({
+        page: z.number().min(1).default(1),
+        pageSize: z.number().min(1).max(100).default(20),
+        tenantId: z.number().optional(),
+        creditType: z.enum(["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE", "FINANCIAMENTO"]).optional(),
+        startDate: z.string().optional(),
+        endDate: z.string().optional(),
+      }))
+      .query(async ({ input }) => {
+        const { page, pageSize, tenantId, creditType, startDate, endDate } = input;
+        const offset = (page - 1) * pageSize;
+        
+        // Buscar todas as predições e aplicar filtros
+        let allPredictions = await db.getAllPredictions();
+        
+        // Filtrar por tenant
+        if (tenantId) {
+          allPredictions = allPredictions.filter((p) => p.tenantId === tenantId);
+        }
+        
+        // Filtrar por tipo de crédito
+        if (creditType) {
+          allPredictions = allPredictions.filter((p) => p.creditType === creditType);
+        }
+        
+        // Filtrar por data
+        if (startDate) {
+          const start = new Date(startDate);
+          allPredictions = allPredictions.filter((p) => new Date(p.createdAt) >= start);
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          allPredictions = allPredictions.filter((p) => new Date(p.createdAt) <= end);
+        }
+        
+        const total = allPredictions.length;
+        const totalPages = Math.ceil(total / pageSize);
+        const predictions = allPredictions.slice(offset, offset + pageSize);
+        
+        return {
+          predictions,
+          pagination: {
+            page,
+            pageSize,
+            total,
+            totalPages,
+          },
+        };
+      }),
+    
     listByTenant: publicProcedure
       .input(z.object({ tenantId: z.number() }))
       .query(async ({ input }) => {

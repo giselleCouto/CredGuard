@@ -43,3 +43,11 @@
 - [x] Checkpoint final
 - [x] Publicação
 - [x] Testes de produção
+
+## Novas Funcionalidades
+- [x] Página de histórico de predições com tabela paginada
+- [x] Filtros por data (início e fim)
+- [x] Filtro por tipo de crédito
+- [x] Filtro por tenant
+- [x] Paginação no backend
+- [x] Exibição de resultados detalhados
