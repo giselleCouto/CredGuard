@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -32,6 +33,8 @@ export default function DriftMonitoring() {
         </div>
       </header>
       <main className="container py-8">
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Monitoramento de Drift" }]} />
+        <div className="h-6" />
         <Card>
           <CardHeader>
             <CardTitle>Status de Drift dos Modelos</CardTitle>

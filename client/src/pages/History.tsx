@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -73,6 +74,8 @@ export default function History() {
       </header>
 
       <main className="container py-8">
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Hist\u00f3rico de Predi\u00e7\u00f5es" }]} />
+        <div className="h-6" />
         {/* Filtros */}
         <Card className="mb-6">
           <CardHeader>

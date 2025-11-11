@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Models() {
   const { data: models, isLoading } = trpc.models.list.useQuery();
@@ -24,6 +25,8 @@ export default function Models() {
         </div>
       </header>
       <main className="container py-8">
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Modelos ML" }]} />
+        <div className="h-6" />
         <Card>
           <CardHeader>
             <CardTitle>Modelos de Machine Learning</CardTitle>

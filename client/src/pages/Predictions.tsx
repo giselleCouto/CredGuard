@@ -1,5 +1,6 @@
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -55,6 +56,8 @@ export default function Predictions() {
         </div>
       </header>
       <main className="container py-8">
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Predi\u00e7\u00f5es" }]} />
+        <div className="h-6" />
         <Card className="max-w-2xl mx-auto">
           <CardHeader>
             <CardTitle>Nova Predicao de Risco</CardTitle>

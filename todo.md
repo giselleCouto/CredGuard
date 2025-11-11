@@ -61,3 +61,8 @@
 - [x] Criar logotipo SVG personalizado
 - [x] Substituir ícone Brain por logo em todas as páginas
 - [x] Adicionar componente Logo reutilizável
+
+## Sistema de Navegação
+- [x] Criar componente Breadcrumbs reutilizável
+- [x] Integrar breadcrumbs em todas as páginas internas
+- [x] Adicionar navegação hierárquica (Home > Dashboard > Seção)

@@ -4,6 +4,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Brain, Users, TrendingUp, AlertTriangle, ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Dashboard() {
   const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
@@ -45,6 +46,8 @@ export default function Dashboard() {
       </header>
 
       <main className="container py-8">
+        <Breadcrumbs items={[{ label: "Dashboard" }]} />
+        <div className="h-6" />
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 mb-8">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">

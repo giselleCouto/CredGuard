@@ -6,6 +6,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
 import Logo from "@/components/Logo";
+import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Tenants() {
   const { data: tenants, isLoading } = trpc.tenants.list.useQuery();
@@ -24,6 +25,8 @@ export default function Tenants() {
         </div>
       </header>
       <main className="container py-8">
+        <Breadcrumbs items={[{ label: "Dashboard", href: "/dashboard" }, { label: "Tenants" }]} />
+        <div className="h-6" />
         <Card>
           <CardHeader>
             <CardTitle>Lista de Tenants</CardTitle>
