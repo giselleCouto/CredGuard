@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { BarChart3, Shield, TrendingUp, Users, Zap, Brain } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function Home() {
   return (
@@ -11,7 +12,7 @@ export default function Home() {
         <div className="container py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Brain className="h-8 w-8 text-primary" />
+              <Logo size={32} />
               <h1 className="text-2xl font-bold text-foreground">Behavior SaaS</h1>
             </div>
             <nav className="flex items-center gap-4">

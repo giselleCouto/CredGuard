@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Brain, Users, TrendingUp, AlertTriangle, ArrowLeft } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function Dashboard() {
   const { data: stats, isLoading } = trpc.dashboard.stats.useQuery();
@@ -29,6 +30,7 @@ export default function Dashboard() {
                   <ArrowLeft className="h-5 w-5" />
                 </Button>
               </Link>
+              <Logo size={28} />
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
             </div>
             <nav className="flex gap-2">

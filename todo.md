@@ -56,3 +56,8 @@
 - [x] Remover "KAB" de todas as páginas
 - [x] Atualizar título para "Behavior SaaS"
 - [x] Atualizar rodapé e cabeçalhos
+
+## Logo e Identidade Visual
+- [x] Criar logotipo SVG personalizado
+- [x] Substituir ícone Brain por logo em todas as páginas
+- [x] Adicionar componente Logo reutilizável

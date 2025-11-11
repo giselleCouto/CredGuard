@@ -4,7 +4,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { ArrowLeft, Brain } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
+import Logo from "@/components/Logo";
 
 export default function Models() {
   const { data: models, isLoading } = trpc.models.list.useQuery();
@@ -17,7 +18,7 @@ export default function Models() {
             <Link href="/dashboard">
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
-            <Brain className="h-6 w-6 text-primary" />
+            <Logo size={24} />
             <h1 className="text-2xl font-bold">Modelos ML</h1>
           </div>
         </div>

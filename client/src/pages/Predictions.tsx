@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -48,7 +49,7 @@ export default function Predictions() {
             <Link href="/dashboard">
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
-            <TrendingUp className="h-6 w-6 text-primary" />
+            <Logo size={24} />
             <h1 className="text-2xl font-bold">Predicoes</h1>
           </div>
         </div>

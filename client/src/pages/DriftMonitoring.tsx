@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import Logo from "@/components/Logo";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
@@ -25,7 +26,7 @@ export default function DriftMonitoring() {
             <Link href="/dashboard">
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
-            <AlertTriangle className="h-6 w-6 text-primary" />
+            <Logo size={24} />
             <h1 className="text-2xl font-bold">Monitoramento de Drift</h1>
           </div>
         </div>
