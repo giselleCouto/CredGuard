@@ -12,7 +12,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Brain className="h-8 w-8 text-primary" />
-              <h1 className="text-2xl font-bold text-foreground">Behavior KAB SaaS</h1>
+              <h1 className="text-2xl font-bold text-foreground">Behavior SaaS</h1>
             </div>
             <nav className="flex items-center gap-4">
               <Link href="/dashboard">
@@ -178,7 +178,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t py-8 bg-card">
         <div className="container text-center text-muted-foreground">
-          <p>© 2025 Behavior KAB SaaS - Desenvolvido por Giselle Falcão</p>
+          <p>© 2025 Behavior SaaS - Desenvolvido por Giselle Falcão</p>
         </div>
       </footer>
     </div>

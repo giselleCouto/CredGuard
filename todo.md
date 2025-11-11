@@ -1,4 +1,4 @@
-# Behavior KAB SaaS - TODO List
+# Behavior SaaS - TODO List
 
 ## Banco de Dados
 - [x] Schema de tenants (organizações)
@@ -51,3 +51,8 @@
 - [x] Filtro por tenant
 - [x] Paginação no backend
 - [x] Exibição de resultados detalhados
+
+## Ajustes de Branding
+- [x] Remover "KAB" de todas as páginas
+- [x] Atualizar título para "Behavior SaaS"
+- [x] Atualizar rodapé e cabeçalhos
