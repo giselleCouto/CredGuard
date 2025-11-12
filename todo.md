@@ -73,3 +73,13 @@
 - [x] Criar componente ThemeToggle
 - [x] Adicionar toggle no cabeçalho de todas as páginas
 - [x] Testar persistência do tema
+
+## Página de Perfil do Usuário
+- [x] Criar schema de usuários no banco de dados
+- [x] Criar endpoint backend para dados do perfil
+- [x] Criar endpoint para histórico de predições do usuário
+- [x] Criar página Profile.tsx com dados pessoais
+- [x] Adicionar seção de estatísticas (total de predições, scores médios)
+- [x] Adicionar tabela de histórico de predições
+- [x] Adicionar rota /profile no App.tsx
+- [x] Adicionar link para perfil no cabeçalho

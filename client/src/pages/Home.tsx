@@ -36,6 +36,9 @@ export default function Home() {
               <Link href="/history">
                 <Button variant="ghost">Histórico</Button>
               </Link>
+              <Link href="/profile">
+                <Button variant="ghost">Perfil</Button>
+              </Link>
             </nav>
           </div>
         </div>

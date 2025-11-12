@@ -15,6 +15,13 @@
       "when": 1762887370836,
       "tag": "0001_organic_changeling",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1762915166611,
+      "tag": "0002_silky_toad_men",
+      "breakpoints": true
     }
   ]
 }

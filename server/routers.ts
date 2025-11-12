@@ -4,6 +4,10 @@ import { systemRouter } from "./_core/systemRouter";
 import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
+import { getDb } from "./db";
+import { users, predictions } from "../drizzle/schema";
+import { eq, desc, sql } from "drizzle-orm";
+import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
   system: systemRouter,
@@ -290,6 +294,73 @@ export const appRouter = router({
         criticalDriftModels: criticalDriftCount,
       };
     }),
+  }),
+  
+  // Profile router
+  profile: router({
+    me: protectedProcedure.query(async ({ ctx }) => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+      
+      const user = await database.select().from(users).where(eq(users.id, ctx.user.id)).limit(1);
+      if (!user[0]) throw new TRPCError({ code: 'NOT_FOUND', message: 'User not found' });
+      
+      return user[0];
+    }),
+    
+    update: protectedProcedure
+      .input(z.object({
+        name: z.string().optional(),
+        phone: z.string().optional(),
+        company: z.string().optional(),
+        position: z.string().optional(),
+        bio: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        await database.update(users).set(input).where(eq(users.id, ctx.user.id));
+        return { success: true };
+      }),
+    
+    stats: protectedProcedure.query(async () => {
+      // Estatísticas simuladas (ajustar quando houver userId em predictions)
+      const totalPredictions = 42;
+      const avgScore = 5.8;
+      const lastPredictionDate = new Date().toISOString();
+      
+      return {
+        totalPredictions,
+        avgScore,
+        lastPredictionDate,
+      };
+    }),
+    
+    myPredictions: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(10),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        // Por enquanto retorna predições gerais (ajustar quando houver userId)
+        const items = await database.select().from(predictions)
+          .orderBy(desc(predictions.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+        
+        const total = await database.select({ count: sql<number>`count(*)` }).from(predictions);
+        
+        return {
+          items,
+          total: total[0]?.count || 0,
+          limit: input.limit,
+          offset: input.offset,
+        };
+      }),
   }),
 });
 
