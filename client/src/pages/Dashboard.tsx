@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { Brain, Users, TrendingUp, AlertTriangle, ArrowLeft } from "lucide-react";
+import { Brain, Users, TrendingUp, AlertTriangle, ArrowLeft, Upload } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -36,11 +36,10 @@ export default function Dashboard() {
               <h1 className="text-2xl font-bold text-foreground">Dashboard</h1>
             </div>
             <nav className="flex gap-2">
-              <Link href="/tenants"><Button variant="ghost">Tenants</Button></Link>
-              <Link href="/models"><Button variant="ghost">Modelos</Button></Link>
-              <Link href="/predictions"><Button variant="ghost">Predições</Button></Link>
-              <Link href="/drift"><Button variant="ghost">Drift</Button></Link>
+              <Link href="/batch-upload"><Button variant="ghost">Upload em Lote</Button></Link>
               <Link href="/history"><Button variant="ghost">Histórico</Button></Link>
+              <Link href="/profile"><Button variant="ghost">Perfil</Button></Link>
+              <ThemeToggle />
             </nav>
           </div>
         </div>
@@ -110,20 +109,23 @@ export default function Dashboard() {
               <CardDescription>Acesse as principais funcionalidades</CardDescription>
             </CardHeader>
             <CardContent className="space-y-2">
-              <Link href="/predictions">
-                <Button className="w-full" variant="outline">Fazer Nova Predição</Button>
-              </Link>
-              <Link href="/tenants">
-                <Button className="w-full" variant="outline">Gerenciar Tenants</Button>
-              </Link>
-              <Link href="/models">
-                <Button className="w-full" variant="outline">Visualizar Modelos</Button>
-              </Link>
-              <Link href="/drift">
-                <Button className="w-full" variant="outline">Monitorar Drift</Button>
+              <Link href="/batch-upload">
+                <Button className="w-full" variant="default">
+                  <Upload className="mr-2 h-4 w-4" />
+                  Upload em Lote de Clientes
+                </Button>
               </Link>
               <Link href="/history">
-                <Button className="w-full" variant="outline">Ver Histórico</Button>
+                <Button className="w-full" variant="outline">Ver Histórico de Scores</Button>
+              </Link>
+              <Link href="/profile">
+                <Button className="w-full" variant="outline">Meu Perfil</Button>
+              </Link>
+              <Link href="/ai-generative">
+                <Button className="w-full" variant="outline">IA Generativa</Button>
+              </Link>
+              <Link href="/fraud-prevention">
+                <Button className="w-full" variant="outline">Prevenção de Fraudes</Button>
               </Link>
             </CardContent>
           </Card>

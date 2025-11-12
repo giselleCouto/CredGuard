@@ -16,6 +16,7 @@ import AIGenerative from "./pages/AIGenerative";
 import FraudPrevention from "./pages/FraudPrevention";
 import BankingAsService from "./pages/BankingAsService";
 import Profile from "./pages/Profile";
+import BatchUpload from "./pages/BatchUpload";
 
 function Router() {
   return (
@@ -31,7 +32,8 @@ function Router() {
       <Route path={"/ai-generative"} component={AIGenerative} />
       <Route path={"/fraud-prevention"} component={FraudPrevention} />
       <Route path={"/baas"} component={BankingAsService} />
-      <Route path={"/profile"} component={Profile} />
+        <Route path="/profile" component={Profile} />
+      <Route path="/batch-upload" component={BatchUpload} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

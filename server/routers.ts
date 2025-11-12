@@ -5,7 +5,7 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { getDb } from "./db";
-import { users, predictions } from "../drizzle/schema";
+import { users, predictions, batchJobs, customerData, customerScores } from "../drizzle/schema";
 import { eq, desc, sql } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
@@ -297,6 +297,229 @@ export const appRouter = router({
   }),
   
   // Profile router
+  batch: router({
+    // Upload de arquivo CSV/Excel
+    upload: protectedProcedure
+      .input(z.object({
+        fileName: z.string(),
+        fileSize: z.number(),
+        fileData: z.string(), // Base64 encoded CSV content
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        // Gerar job_id único
+        const now = new Date();
+        const timestamp = `${now.getFullYear()}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}_${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
+        const randomId = Math.random().toString(36).substring(2, 8);
+        const jobId = `batch_${timestamp}_${randomId}`;
+        
+        // Criar job no banco
+        await database.insert(batchJobs).values({
+          jobId,
+          tenantId: 1, // TODO: Pegar do ctx.user.tenantId
+          fileName: input.fileName,
+          fileSize: input.fileSize,
+          status: 'queued',
+        });
+        
+        // Processar CSV (simulação síncrona - em produção usar Celery)
+        try {
+          // Decodificar base64 e parsear CSV
+          const csvContent = Buffer.from(input.fileData, 'base64').toString('utf-8');
+          const lines = csvContent.split('\n').filter(l => l.trim());
+          const headers = lines[0].split(',').map(h => h.trim());
+          
+          const totalRows = lines.length - 1;
+          await database.update(batchJobs)
+            .set({ totalRows, status: 'processing', startedAt: new Date() })
+            .where(eq(batchJobs.jobId, jobId));
+          
+          const jobRecord = await database.select().from(batchJobs).where(eq(batchJobs.jobId, jobId)).limit(1);
+          const batchJobId = jobRecord[0].id;
+          
+          // Processar cada linha
+          for (let i = 1; i < lines.length; i++) {
+            const values = lines[i].split(',').map(v => v.trim());
+            const row: any = {};
+            headers.forEach((h, idx) => { row[h] = values[idx]; });
+            
+            // Salvar dados raw
+            await database.insert(customerData).values({
+              tenantId: 1,
+              batchJobId,
+              cpf: row.cpf || '',
+              nome: row.nome || '',
+              email: row.email,
+              telefone: row.telefone,
+              dataNascimento: row.data_nascimento,
+              renda: row.renda,
+              produto: row.produto as any,
+              dataCompra: row.data_compra,
+              valorCompra: row.valor_compra,
+              dataPagamento: row.data_pagamento,
+              statusPagamento: row.status_pagamento,
+              diasAtraso: row.dias_atraso ? parseInt(row.dias_atraso) : null,
+              rawData: JSON.stringify(row),
+            });
+            
+            // Aplicar regras de negócio
+            let motivoExclusao = null;
+            let scoreProbInadimplencia = null;
+            let faixaScore = null;
+            
+            // Calcular meses de histórico
+            const dataCompra = new Date(row.data_compra);
+            const hoje = new Date();
+            const mesesHistorico = Math.floor((hoje.getTime() - dataCompra.getTime()) / (1000 * 60 * 60 * 24 * 30));
+            
+            // Calcular último movimento
+            const ultimoMovimento = row.data_pagamento ? new Date(row.data_pagamento) : dataCompra;
+            const mesesSemMovimento = Math.floor((hoje.getTime() - ultimoMovimento.getTime()) / (1000 * 60 * 60 * 24 * 30));
+            
+            // Regra 1: Menos de 3 meses de histórico
+            if (mesesHistorico < 3) {
+              motivoExclusao = 'menos_3_meses';
+            }
+            // Regra 2: Inativo há mais de 8 meses
+            else if (mesesSemMovimento > 8) {
+              motivoExclusao = 'inativo_8_meses';
+            }
+            // Gerar score
+            else {
+              // Simulação de modelo ML (em produção, chamar modelo real)
+              const baseScore = Math.random();
+              const diasAtraso = parseInt(row.dias_atraso || '0');
+              const ajuste = diasAtraso > 0 ? 0.3 : -0.1;
+              
+              scoreProbInadimplencia = Math.max(0, Math.min(1, baseScore + ajuste)).toFixed(2);
+              
+              // Mapear para faixa
+              const score = parseFloat(scoreProbInadimplencia);
+              if (score <= 0.2) faixaScore = 'A';
+              else if (score <= 0.4) faixaScore = 'B';
+              else if (score <= 0.6) faixaScore = 'C';
+              else if (score <= 0.8) faixaScore = 'D';
+              else faixaScore = 'E';
+            }
+            
+            // Salvar score
+            await database.insert(customerScores).values({
+              tenantId: 1,
+              batchJobId,
+              cpf: row.cpf || '',
+              nome: row.nome || '',
+              produto: row.produto as any,
+              scoreProbInadimplencia,
+              faixaScore: faixaScore as any,
+              motivoExclusao,
+              mesesHistorico,
+              ultimoMovimento: ultimoMovimento.toISOString().split('T')[0],
+            });
+          }
+          
+          // Marcar como concluído
+          await database.update(batchJobs)
+            .set({ 
+              status: 'completed', 
+              processedRows: totalRows,
+              completedAt: new Date() 
+            })
+            .where(eq(batchJobs.jobId, jobId));
+          
+          return {
+            jobId,
+            status: 'completed',
+            queuedAt: now.toISOString(),
+            totalRows,
+          };
+        } catch (error: any) {
+          // Marcar como falho
+          await database.update(batchJobs)
+            .set({ 
+              status: 'failed', 
+              errorMessage: error.message,
+              completedAt: new Date() 
+            })
+            .where(eq(batchJobs.jobId, jobId));
+          
+          throw new TRPCError({ 
+            code: 'INTERNAL_SERVER_ERROR', 
+            message: `Processing failed: ${error.message}` 
+          });
+        }
+      }),
+    
+    // Consultar status do job
+    getJob: protectedProcedure
+      .input(z.object({ jobId: z.string() }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const jobs = await database.select().from(batchJobs).where(eq(batchJobs.jobId, input.jobId)).limit(1);
+        
+        if (jobs.length === 0) {
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Job not found' });
+        }
+        
+        return jobs[0];
+      }),
+    
+    // Listar jobs do tenant
+    listJobs: protectedProcedure
+      .input(z.object({
+        limit: z.number().default(20),
+        offset: z.number().default(0),
+      }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const jobs = await database
+          .select()
+          .from(batchJobs)
+          .where(eq(batchJobs.tenantId, 1)) // TODO: Filtrar por ctx.user.tenantId
+          .orderBy(desc(batchJobs.createdAt))
+          .limit(input.limit)
+          .offset(input.offset);
+        
+        return jobs;
+      }),
+    
+    // Baixar CSV de resultados
+    downloadCsv: protectedProcedure
+      .input(z.object({ jobId: z.string() }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        // Buscar scores do job
+        const job = await database.select().from(batchJobs).where(eq(batchJobs.jobId, input.jobId)).limit(1);
+        
+        if (job.length === 0 || job[0].status !== 'completed') {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Job not completed yet' });
+        }
+        
+        const scores = await database
+          .select()
+          .from(customerScores)
+          .where(eq(customerScores.batchJobId, job[0].id));
+        
+        // Gerar CSV
+        const csvHeader = 'cpf,nome,produto,score_prob_inadimplencia,faixa_score,motivo_exclusao,data_processamento\n';
+        const csvRows = scores.map(s => 
+          `${s.cpf},${s.nome || ''},${s.produto},${s.scoreProbInadimplencia || ''},${s.faixaScore || ''},${s.motivoExclusao || ''},${s.dataProcessamento?.toISOString().split('T')[0] || ''}`
+        ).join('\n');
+        
+        return {
+          csv: csvHeader + csvRows,
+          fileName: `scores_${input.jobId}.csv`,
+        };
+      }),
+  }),
+
   profile: router({
     me: protectedProcedure.query(async ({ ctx }) => {
       const database = await getDb();

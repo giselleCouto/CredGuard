@@ -62,6 +62,62 @@ export type InsertModel = typeof models.$inferInsert;
 /**
  * Predições realizadas
  */
+// Tabela de jobs de processamento em lote
+export const batchJobs = mysqlTable("batch_jobs", {
+  id: int("id").autoincrement().primaryKey(),
+  jobId: varchar("job_id", { length: 100 }).notNull().unique(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  fileName: varchar("file_name", { length: 255 }).notNull(),
+  fileSize: int("file_size").notNull(),
+  totalRows: int("total_rows"),
+  processedRows: int("processed_rows").default(0),
+  status: mysqlEnum("status", ["queued", "processing", "completed", "failed"]).default("queued").notNull(),
+  errorMessage: text("error_message"),
+  resultCsvPath: varchar("result_csv_path", { length: 500 }),
+  queuedAt: timestamp("queued_at").defaultNow().notNull(),
+  startedAt: timestamp("started_at"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela de dados raw dos clientes (histórico de compras e pagamentos)
+export const customerData = mysqlTable("customer_data", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  batchJobId: int("batch_job_id").notNull().references(() => batchJobs.id),
+  cpf: varchar("cpf", { length: 14 }).notNull(),
+  nome: varchar("nome", { length: 255 }),
+  email: varchar("email", { length: 320 }),
+  telefone: varchar("telefone", { length: 20 }),
+  dataNascimento: varchar("data_nascimento", { length: 10 }),
+  renda: varchar("renda", { length: 20 }),
+  produto: mysqlEnum("produto", ["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE"]).notNull(),
+  dataCompra: varchar("data_compra", { length: 10 }),
+  valorCompra: varchar("valor_compra", { length: 20 }),
+  dataPagamento: varchar("data_pagamento", { length: 10 }),
+  statusPagamento: varchar("status_pagamento", { length: 50 }),
+  diasAtraso: int("dias_atraso"),
+  rawData: text("raw_data"), // JSON com todos os campos originais
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Tabela de scores gerados
+export const customerScores = mysqlTable("customer_scores", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  batchJobId: int("batch_job_id").notNull().references(() => batchJobs.id),
+  cpf: varchar("cpf", { length: 14 }).notNull(),
+  nome: varchar("nome", { length: 255 }),
+  produto: mysqlEnum("produto", ["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE"]).notNull(),
+  scoreProbInadimplencia: varchar("score_prob_inadimplencia", { length: 10 }), // 0.00 a 1.00
+  faixaScore: mysqlEnum("faixa_score", ["A", "B", "C", "D", "E"]),
+  motivoExclusao: varchar("motivo_exclusao", { length: 100 }), // menos_3_meses, inativo_8_meses
+  mesesHistorico: int("meses_historico"),
+  ultimoMovimento: varchar("ultimo_movimento", { length: 10 }),
+  dataProcessamento: timestamp("data_processamento").defaultNow().notNull(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
 export const predictions = mysqlTable("predictions", {
   id: int("id").autoincrement().primaryKey(),
   predictionId: varchar("predictionId", { length: 100 }).notNull().unique(),
