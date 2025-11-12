@@ -67,3 +67,20 @@
 - [x] Adicionar campos de bureau no CSV de saída (score_serasa, pendencias, protestos)
 - [x] Documentar integração e custos no UPLOAD_GUIDE.md
 - [x] Testar fluxo com bureau ativado e desativado
+
+## Integração de Bureau no Processamento em Lote
+- [x] Atualizar batch.upload para chamar enrichWithBureau durante processamento
+- [x] Implementar cálculo de score híbrido com calculateHybridScore
+- [x] Salvar campos de bureau (score_interno, score_serasa, pendencias, protestos) no customer_scores
+- [x] Adicionar parâmetro enrichBureaus opcional no upload
+- [x] Atualizar CSV de saída para incluir campos de bureau
+
+## Dashboard de Métricas de Bureau
+- [x] Criar endpoint bureau.getMetrics (consultas totais, cache hits, custos)
+- [x] Criar endpoint bureau.getCacheStats (taxa de hit/miss)
+- [x] Criar endpoint bureau.getScoreDistribution (híbrido vs interno)
+- [x] Implementar página BureauMetrics.tsx com gráficos
+- [x] Adicionar gráfico de consultas por período
+- [x] Adicionar gráfico de cache hit/miss rate
+- [x] Adicionar estimativa de custos mensal
+- [x] Adicionar comparação de scores (interno vs híbrido)

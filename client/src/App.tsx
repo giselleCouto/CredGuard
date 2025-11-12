@@ -6,6 +6,7 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import BureauConfig from "./pages/BureauConfig";
+import BureauMetrics from "./pages/BureauMetrics";
 import Dashboard from "./pages/Dashboard";
 import Tenants from "./pages/Tenants";
 import Models from "./pages/Models";
@@ -24,6 +25,7 @@ function Router() {
     <Switch>
       <Route path={"/"} component={Home} />
       <Route path={"/bureau-config"} component={BureauConfig} />
+      <Route path={"/bureau-metrics"} component={BureauMetrics} />
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/404"} component={NotFound} />
       <Route path={"/tenants"} component={Tenants} />

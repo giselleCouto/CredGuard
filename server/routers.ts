@@ -5,8 +5,8 @@ import { publicProcedure, protectedProcedure, router } from "./_core/trpc";
 import { z } from "zod";
 import * as db from "./db";
 import { getDb } from "./db";
-import { users, predictions, batchJobs, customerData, customerScores } from "../drizzle/schema";
-import { eq, desc, sql } from "drizzle-orm";
+import { users, predictions, batchJobs, customerData, customerScores, bureauCache } from "../drizzle/schema";
+import { eq, desc, sql, and, gt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
 
 export const appRouter = router({
@@ -368,6 +368,11 @@ export const appRouter = router({
             let motivoExclusao = null;
             let scoreProbInadimplencia = null;
             let faixaScore = null;
+            let scoreInternoStr = null;
+            let scoreSerasa = null;
+            let pendencias = null;
+            let protestos = null;
+            let bureauSource = 'disabled';
             
             // Calcular meses de histórico
             const dataCompra = new Date(row.data_compra);
@@ -388,20 +393,41 @@ export const appRouter = router({
             }
             // Gerar score
             else {
-              // Simulação de modelo ML (em produção, chamar modelo real)
-              const baseScore = Math.random();
+              // Simulação de modelo ML (score interno)
               const diasAtraso = parseInt(row.dias_atraso || '0');
+              const baseScore = Math.random();
               const ajuste = diasAtraso > 0 ? 0.3 : -0.1;
+              const scoreInterno = Math.max(0, Math.min(1, baseScore + ajuste));
               
-              scoreProbInadimplencia = Math.max(0, Math.min(1, baseScore + ajuste)).toFixed(2);
+              // Enriquecimento com bureau (se habilitado)
+              const { enrichWithBureau, calculateHybridScore, isBureauEnabled } = await import("./bureauService");
+              const bureauEnabled = await isBureauEnabled(1); // TODO: usar ctx.user.tenantId
+              
+              let bureauData: any = { source: 'disabled' };
+              let scoreFinal = scoreInterno;
+              
+              if (bureauEnabled && row.cpf) {
+                const apiToken = process.env.APIBRASIL_TOKEN;
+                bureauData = await enrichWithBureau(1, row.cpf, apiToken);
+                scoreFinal = calculateHybridScore(scoreInterno, bureauData);
+              }
+              
+              scoreProbInadimplencia = scoreFinal.toFixed(4);
               
               // Mapear para faixa
-              const score = parseFloat(scoreProbInadimplencia);
+              const score = scoreFinal;
               if (score <= 0.2) faixaScore = 'A';
               else if (score <= 0.4) faixaScore = 'B';
               else if (score <= 0.6) faixaScore = 'C';
               else if (score <= 0.8) faixaScore = 'D';
               else faixaScore = 'E';
+              
+              // Preparar dados de bureau para salvar
+              scoreInternoStr = scoreInterno.toFixed(4);
+              scoreSerasa = bureauData.scoreSerasa || null;
+              pendencias = bureauData.pendencias || null;
+              protestos = bureauData.protestos || null;
+              bureauSource = bureauData.source || 'disabled';
             }
             
             // Salvar score
@@ -416,6 +442,12 @@ export const appRouter = router({
               motivoExclusao,
               mesesHistorico,
               ultimoMovimento: ultimoMovimento.toISOString().split('T')[0],
+              // Campos de bureau
+              scoreInterno: motivoExclusao ? null : scoreInternoStr,
+              scoreSerasa: motivoExclusao ? null : scoreSerasa,
+              pendencias: motivoExclusao ? null : pendencias,
+              protestos: motivoExclusao ? null : protestos,
+              bureauSource: motivoExclusao ? null : bureauSource,
             });
           }
           
@@ -507,10 +539,10 @@ export const appRouter = router({
           .from(customerScores)
           .where(eq(customerScores.batchJobId, job[0].id));
         
-        // Gerar CSV
-        const csvHeader = 'cpf,nome,produto,score_prob_inadimplencia,faixa_score,motivo_exclusao,data_processamento\n';
+        // Gerar CSV com campos de bureau
+        const csvHeader = 'cpf,nome,produto,score_prob_inadimplencia,faixa_score,motivo_exclusao,score_interno,score_serasa,pendencias,protestos,bureau_source,data_processamento\n';
         const csvRows = scores.map(s => 
-          `${s.cpf},${s.nome || ''},${s.produto},${s.scoreProbInadimplencia || ''},${s.faixaScore || ''},${s.motivoExclusao || ''},${s.dataProcessamento?.toISOString().split('T')[0] || ''}`
+          `${s.cpf},${s.nome || ''},${s.produto},${s.scoreProbInadimplencia || ''},${s.faixaScore || ''},${s.motivoExclusao || ''},${s.scoreInterno || ''},${s.scoreSerasa || ''},${s.pendencias || ''},${s.protestos || ''},${s.bureauSource || ''},${s.dataProcessamento?.toISOString().split('T')[0] || ''}`
         ).join('\n');
         
         return {
@@ -688,6 +720,103 @@ export const appRouter = router({
         return {
           success: true,
           bureauEnabled: input.bureauEnabled,
+        };
+      }),
+
+    // Métricas de uso de bureau
+    getMetrics: protectedProcedure
+      .query(async ({ ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        const now = new Date();
+        const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+        
+        // Total de consultas (cache entries criados nos últimos 30 dias)
+        const totalConsultas = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(bureauCache)
+          .where(and(
+            eq(bureauCache.tenantId, tenantId),
+            gt(bureauCache.cachedAt, thirtyDaysAgo)
+          ));
+        
+        // Cache hits (consultas que usaram cache)
+        const cacheHits = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(bureauCache)
+          .where(and(
+            eq(bureauCache.tenantId, tenantId),
+            gt(bureauCache.cachedAt, thirtyDaysAgo),
+            eq(bureauCache.source, 'serasa_apibrasil')
+          ));
+        
+        const total = Number(totalConsultas[0]?.count || 0);
+        const hits = Number(cacheHits[0]?.count || 0);
+        const cacheHitRate = total > 0 ? (hits / total) * 100 : 0;
+        
+        // Custo estimado (R$ 99/mês se bureau ativado)
+        const { isBureauEnabled } = await import("./bureauService");
+        const bureauEnabled = await isBureauEnabled(tenantId);
+        const custoMensal = bureauEnabled ? 99 : 0;
+        
+        return {
+          totalConsultas: total,
+          cacheHits: hits,
+          cacheMisses: total - hits,
+          cacheHitRate: cacheHitRate.toFixed(1),
+          custoMensal,
+          periodo: '30 dias',
+        };
+      }),
+
+    // Distribuição de scores (interno vs híbrido)
+    getScoreDistribution: protectedProcedure
+      .query(async ({ ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        
+        // Buscar scores dos últimos 30 dias
+        const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+        const scores = await database
+          .select({
+            scoreInterno: customerScores.scoreInterno,
+            scoreFinal: customerScores.scoreProbInadimplencia,
+            bureauSource: customerScores.bureauSource,
+          })
+          .from(customerScores)
+          .where(and(
+            eq(customerScores.tenantId, tenantId),
+            gt(customerScores.dataProcessamento, thirtyDaysAgo)
+          ));
+        
+        // Calcular médias
+        const scoresComBureau = scores.filter(s => s.bureauSource === 'serasa_apibrasil');
+        const scoresSemBureau = scores.filter(s => s.bureauSource === 'disabled');
+        
+        const avgInternoComBureau = scoresComBureau.length > 0
+          ? scoresComBureau.reduce((sum, s) => sum + parseFloat(s.scoreInterno || '0'), 0) / scoresComBureau.length
+          : 0;
+        
+        const avgFinalComBureau = scoresComBureau.length > 0
+          ? scoresComBureau.reduce((sum, s) => sum + parseFloat(s.scoreFinal || '0'), 0) / scoresComBureau.length
+          : 0;
+        
+        const avgSemBureau = scoresSemBureau.length > 0
+          ? scoresSemBureau.reduce((sum, s) => sum + parseFloat(s.scoreFinal || '0'), 0) / scoresSemBureau.length
+          : 0;
+        
+        return {
+          total: scores.length,
+          comBureau: scoresComBureau.length,
+          semBureau: scoresSemBureau.length,
+          avgScoreInternoComBureau: avgInternoComBureau.toFixed(4),
+          avgScoreHibrido: avgFinalComBureau.toFixed(4),
+          avgScoreSemBureau: avgSemBureau.toFixed(4),
+          diferencaMedia: (avgFinalComBureau - avgInternoComBureau).toFixed(4),
         };
       }),
   }),
