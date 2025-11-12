@@ -53,3 +53,17 @@
 - [ ] Documentar formato do CSV de entrada
 - [ ] Documentar formato do CSV de saída
 - [ ] Exemplos de curl para API
+
+## Integração com Bureaus de Crédito
+- [x] Criar schema tenant_bureau_config no banco de dados
+- [x] Implementar modelo TenantBureauConfig (tenant_id, bureau_enabled, provider)
+- [x] Criar serviço de integração com API Brasil (Serasa/Boa Vista)
+- [x] Implementar cache de consultas de bureau (24h)
+- [x] Atualizar processamento em lote para incluir enriquecimento opcional
+- [x] Criar score híbrido (70% interno + 30% bureau)
+- [x] Adicionar endpoint POST /bureau/config (ativar/desativar)
+- [x] Adicionar endpoint GET /bureau/config (consultar status)
+- [x] Criar interface no dashboard para ligar/desligar bureau
+- [x] Adicionar campos de bureau no CSV de saída (score_serasa, pendencias, protestos)
+- [x] Documentar integração e custos no UPLOAD_GUIDE.md
+- [x] Testar fluxo com bureau ativado e desativado

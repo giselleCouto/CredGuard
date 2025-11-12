@@ -662,6 +662,35 @@ export const appRouter = router({
         return distribution;
       }),
   }),
+
+  // Bureau configuration router
+  bureau: router({
+    getConfig: protectedProcedure
+      .query(async ({ ctx }) => {
+        const { isBureauEnabled } = await import("./bureauService");
+        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        const enabled = await isBureauEnabled(tenantId);
+        return {
+          bureauEnabled: enabled,
+          provider: "API Brasil (Serasa/Boa Vista)",
+          cacheHours: 24,
+        };
+      }),
+
+    setConfig: protectedProcedure
+      .input(z.object({
+        bureauEnabled: z.boolean(),
+      }))
+      .mutation(async ({ input, ctx }) => {
+        const { setBureauEnabled } = await import("./bureauService");
+        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        await setBureauEnabled(tenantId, input.bureauEnabled);
+        return {
+          success: true,
+          bureauEnabled: input.bureauEnabled,
+        };
+      }),
+  }),
 });
 
 export type AppRouter = typeof appRouter;

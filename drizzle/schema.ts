@@ -108,14 +108,19 @@ export const customerScores = mysqlTable("customer_scores", {
   batchJobId: int("batch_job_id").notNull().references(() => batchJobs.id),
   cpf: varchar("cpf", { length: 14 }).notNull(),
   nome: varchar("nome", { length: 255 }),
-  produto: mysqlEnum("produto", ["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE"]).notNull(),
-  scoreProbInadimplencia: varchar("score_prob_inadimplencia", { length: 10 }), // 0.00 a 1.00
+  produto: mysqlEnum("produto", ["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).notNull(),
+  scoreProbInadimplencia: varchar("score_prob_inadimplencia", { length: 10 }),
   faixaScore: mysqlEnum("faixa_score", ["A", "B", "C", "D", "E"]),
-  motivoExclusao: varchar("motivo_exclusao", { length: 100 }), // menos_3_meses, inativo_8_meses
+  motivoExclusao: varchar("motivo_exclusao", { length: 100 }),
   mesesHistorico: int("meses_historico"),
-  ultimoMovimento: varchar("ultimo_movimento", { length: 10 }),
+  ultimoMovimento: varchar("ultimo_movimento", { length: 50 }),
+  // Campos de enriquecimento com bureau
+  scoreInterno: varchar("score_interno", { length: 10 }),
+  scoreSerasa: int("score_serasa"),
+  pendencias: int("pendencias"),
+  protestos: int("protestos"),
+  bureauSource: varchar("bureau_source", { length: 50 }),
   dataProcessamento: timestamp("data_processamento").defaultNow().notNull(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
 export const predictions = mysqlTable("predictions", {
@@ -148,3 +153,36 @@ export const driftMetrics = mysqlTable("driftMetrics", {
 
 export type DriftMetric = typeof driftMetrics.$inferSelect;
 export type InsertDriftMetric = typeof driftMetrics.$inferInsert;
+
+/**
+ * Configuração de bureau de crédito por tenant
+ */
+export const tenantBureauConfig = mysqlTable("tenant_bureau_config", {
+  tenantId: int("tenant_id").primaryKey().references(() => tenants.id),
+  bureauEnabled: boolean("bureau_enabled").default(false).notNull(),
+  bureauProvider: varchar("bureau_provider", { length: 50 }).default("apibrasil").notNull(),
+  lastUpdated: timestamp("last_updated").defaultNow().onUpdateNow().notNull(),
+});
+
+export type TenantBureauConfig = typeof tenantBureauConfig.$inferSelect;
+export type InsertTenantBureauConfig = typeof tenantBureauConfig.$inferInsert;
+
+/**
+ * Cache de consultas de bureau
+ */
+export const bureauCache = mysqlTable("bureau_cache", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  cpf: varchar("cpf", { length: 14 }).notNull(),
+  scoreSerasa: int("score_serasa"),
+  pendencias: int("pendencias").default(0),
+  protestos: int("protestos").default(0),
+  valorDivida: decimal("valor_divida", { precision: 15, scale: 2 }),
+  cadastroPositivo: boolean("cadastro_positivo").default(false),
+  source: varchar("source", { length: 50 }).notNull(),
+  cachedAt: timestamp("cached_at").defaultNow().notNull(),
+  expiresAt: timestamp("expires_at").notNull(),
+});
+
+export type BureauCache = typeof bureauCache.$inferSelect;
+export type InsertBureauCache = typeof bureauCache.$inferInsert;

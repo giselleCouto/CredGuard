@@ -150,6 +150,65 @@ cpf,nome,produto,score_prob_inadimplencia,faixa_score,motivo_exclusao,data_proce
 - Revise o formato do arquivo e tente novamente
 - Entre em contato com o suporte se o problema persistir
 
+## Enriquecimento com Bureaus de Crédito
+
+### O que é?
+
+O CredGuard oferece integração opcional com bureaus de crédito (Serasa e Boa Vista) via **API Brasil**. Quando ativado, o sistema consulta automaticamente o CPF de cada cliente durante o processamento em lote e combina os dados do bureau com a análise interna.
+
+### Como Ativar
+
+1. Acesse **Configurações de Bureau** no dashboard
+2. Ative o toggle **"Ativar enriquecimento automático com bureaus"**
+3. Certifique-se de que o token da API Brasil está configurado nas variáveis de ambiente
+
+### Score Híbrido
+
+Quando o bureau está ativado, o score final é calculado como:
+
+- **70% Score Interno**: Baseado no histórico do cliente na sua empresa
+- **30% Score Bureau**: Score Serasa (normalizado de 0-1000 para 0-1)
+
+Esta combinação gera uma análise mais precisa e reduz o risco de inadimplência.
+
+### Campos Adicionais no CSV
+
+Quando o bureau está ativado, o CSV de saída inclui:
+
+| Campo | Descrição |
+|-------|-------------|
+| `score_interno` | Score calculado apenas com dados internos (0-1) |
+| `score_serasa` | Score do bureau Serasa (0-1000) |
+| `pendencias` | Número de pendências financeiras |
+| `protestos` | Número de protestos |
+| `bureau_source` | Fonte dos dados (`serasa_apibrasil`, `disabled`, `error`, `timeout`) |
+
+### Cache Inteligente
+
+Para reduzir custos e melhorar a performance:
+
+- Consultas são armazenadas em cache por **24 horas**
+- CPFs consultados recentemente não geram novas consultas
+- O cache é isolado por tenant (cada empresa tem seu próprio cache)
+
+### Custos
+
+- **Bureau Desativado**: Sem custo adicional
+- **Bureau Ativado**: R$ 99/mês (consultas ilimitadas via API Brasil)
+- Consultas com erro ou timeout não são cobradas
+
+### Quando Usar?
+
+**Recomendado quando:**
+- Você precisa de análise de crédito mais robusta
+- Seus clientes são novos e têm pouco histórico interno
+- Você quer reduzir o risco de inadimplência
+
+**Não recomendado quando:**
+- Você já tem histórico extenso dos clientes
+- O custo adicional não se justifica pelo volume
+- Você prefere usar apenas dados internos
+
 ## Próximos Passos
 
 Após processar seus clientes:
