@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import RiskScore from "@/components/RiskScore";
+import { RiskScoreWithTooltip } from "@/components/RiskScore";
 import { ArrowLeft, History as HistoryIcon, ChevronLeft, ChevronRight } from "lucide-react";
 import { useState, useMemo } from "react";
 
@@ -191,7 +191,7 @@ export default function History() {
                               <Badge variant="outline">{prediction.creditType}</Badge>
                             </TableCell>
                             <TableCell>
-                              <RiskScore score={prediction.riskClass} size="sm" />
+                              <RiskScoreWithTooltip score={prediction.riskClass} />
                             </TableCell>
                             <TableCell>
                               {(prediction.probability / 100).toFixed(2)}%

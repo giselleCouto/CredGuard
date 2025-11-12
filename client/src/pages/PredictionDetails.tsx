@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { Link, useParams } from "wouter";
-import RiskScore from "@/components/RiskScore";
+import { RiskScoreWithTooltip } from "@/components/RiskScore";
 import { ArrowLeft, Calendar, Building2, CreditCard, TrendingUp, DollarSign } from "lucide-react";
 
 export default function PredictionDetails() {
@@ -118,7 +118,7 @@ export default function PredictionDetails() {
               <TrendingUp className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <RiskScore score={prediction.riskClass} size="lg" />
+              <RiskScoreWithTooltip score={prediction.riskClass} />
             </CardContent>
           </Card>
 

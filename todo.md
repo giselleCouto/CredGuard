@@ -57,3 +57,7 @@
 - [x] Implementar cores de status (Verde R1-R3, Amarelo R4-R6, Vermelho R7-R10)
 - [x] Integrar na tabela de histórico
 - [x] Adicionar em outras páginas (Dashboard, Predictions)
+
+## Tooltip de Recomendações
+- [x] Substituir RiskScore por RiskScoreWithTooltip na página de histórico
+- [x] Substituir RiskScore por RiskScoreWithTooltip na página de detalhes
