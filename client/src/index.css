@@ -43,15 +43,18 @@
 }
 
 :root {
-  --primary: var(--color-blue-700);
-  --primary-foreground: var(--color-blue-50);
-  --sidebar-primary: var(--color-blue-600);
-  --sidebar-primary-foreground: var(--color-blue-50);
-  --chart-1: var(--color-blue-300);
-  --chart-2: var(--color-blue-500);
-  --chart-3: var(--color-blue-600);
-  --chart-4: var(--color-blue-700);
-  --chart-5: var(--color-blue-800);
+  /* CredGuard Brand Colors */
+  --primary: oklch(0.38 0.12 258); /* Azul Profundo #1E3A8A */
+  --primary-foreground: oklch(1 0 0); /* Branco */
+  --sidebar-primary: oklch(0.38 0.12 258);
+  --sidebar-primary-foreground: oklch(1 0 0);
+  
+  /* Chart Colors - CredGuard Palette */
+  --chart-1: oklch(0.38 0.12 258); /* Azul Profundo */
+  --chart-2: oklch(0.65 0.19 162); /* Verde Tecnológico */
+  --chart-3: oklch(0.63 0.21 259); /* Azul Cibernético */
+  --chart-4: oklch(0.72 0.18 75); /* Amarelo Alerta */
+  --chart-5: oklch(0.58 0.22 25); /* Vermelho Crítico */
   --radius: 0.65rem;
   --background: oklch(1 0 0);
   --foreground: oklch(0.235 0.015 65);
@@ -59,14 +62,14 @@
   --card-foreground: oklch(0.235 0.015 65);
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.235 0.015 65);
-  --secondary: oklch(0.98 0.001 286.375);
-  --secondary-foreground: oklch(0.4 0.015 65);
+  --secondary: oklch(0.65 0.19 162); /* Verde Tecnológico #10B981 */
+  --secondary-foreground: oklch(1 0 0);
   --muted: oklch(0.967 0.001 286.375);
   --muted-foreground: oklch(0.552 0.016 285.938);
-  --accent: oklch(0.967 0.001 286.375);
-  --accent-foreground: oklch(0.141 0.005 285.823);
-  --destructive: oklch(0.577 0.245 27.325);
-  --destructive-foreground: oklch(0.985 0 0);
+  --accent: oklch(0.63 0.21 259); /* Azul Cibernético #3B82F6 */
+  --accent-foreground: oklch(1 0 0);
+  --destructive: oklch(0.58 0.22 25); /* Vermelho Crítico #DC2626 */
+  --destructive-foreground: oklch(1 0 0);
   --border: oklch(0.92 0.004 286.32);
   --input: oklch(0.92 0.004 286.32);
   --ring: oklch(0.623 0.214 259.815);
@@ -119,6 +122,25 @@
   }
   body {
     @apply bg-background text-foreground;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-weight: 600;
+  }
+  
+  h1 {
+    @apply text-4xl font-bold tracking-tight;
+  }
+  
+  h2 {
+    @apply text-3xl font-semibold tracking-tight;
+  }
+  
+  h3 {
+    @apply text-2xl font-semibold;
   }
   button:not(:disabled),
   [role="button"]:not([aria-disabled="true"]),
@@ -174,4 +196,65 @@
       max-width: 1280px; /* Standard content width */
     }
   }
+}
+
+@layer utilities {
+  /* CredGuard Gradient Utilities */
+  .bg-gradient-hero {
+    background: linear-gradient(135deg, oklch(0.38 0.12 258) 0%, oklch(0.63 0.21 259) 50%, oklch(0.65 0.19 162) 100%);
+  }
+  
+  .bg-gradient-card {
+    background: linear-gradient(to right, oklch(0.38 0.12 258), oklch(0.65 0.19 162));
+  }
+  
+  /* Text Gradients */
+  .text-gradient {
+    @apply bg-clip-text text-transparent;
+    background-image: linear-gradient(135deg, oklch(0.38 0.12 258), oklch(0.65 0.19 162));
+  }
+  
+  /* Status Colors */
+  .text-success {
+    color: oklch(0.65 0.19 162);
+  }
+  
+  .text-warning {
+    color: oklch(0.72 0.18 75);
+  }
+  
+  .text-info {
+    color: oklch(0.63 0.21 259);
+  }
+  
+  .bg-success {
+    background-color: oklch(0.65 0.19 162);
+  }
+  
+  .bg-warning {
+    background-color: oklch(0.72 0.18 75);
+  }
+  
+  .bg-info {
+    background-color: oklch(0.63 0.21 259);
+  }
+}
+
+/* Custom Scrollbar - CredGuard Style */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: oklch(0.967 0.001 286.375);
+}
+
+::-webkit-scrollbar-thumb {
+  background: oklch(0.552 0.016 285.938 / 0.3);
+  border-radius: 6px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.552 0.016 285.938 / 0.5);
 }

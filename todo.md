@@ -61,3 +61,9 @@
 ## Tooltip de Recomendações
 - [x] Substituir RiskScore por RiskScoreWithTooltip na página de histórico
 - [x] Substituir RiskScore por RiskScoreWithTooltip na página de detalhes
+
+## Identidade Visual Profissional
+- [x] Implementar paleta de cores (Azul Profundo, Verde Tecnológico, cores de status)
+- [x] Adicionar fontes Inter e IBM Plex Sans via Google Fonts
+- [x] Atualizar variáveis CSS no index.css
+- [x] Aplicar hierarquia tipográfica
