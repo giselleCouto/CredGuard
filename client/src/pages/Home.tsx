@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
-import { BarChart3, Shield, TrendingUp, Users, Zap, Brain } from "lucide-react";
+import { Upload, Shield, TrendingUp, FileText, Lock, Zap } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
 
@@ -19,25 +19,7 @@ export default function Home() {
             <nav className="flex items-center gap-4">
               <ThemeToggle />
               <Link href="/dashboard">
-                <Button variant="ghost">Dashboard</Button>
-              </Link>
-              <Link href="/tenants">
-                <Button variant="ghost">Tenants</Button>
-              </Link>
-              <Link href="/models">
-                <Button variant="ghost">Modelos</Button>
-              </Link>
-              <Link href="/predictions">
-                <Button variant="ghost">Predições</Button>
-              </Link>
-              <Link href="/drift">
-                <Button variant="ghost">Drift</Button>
-              </Link>
-              <Link href="/history">
-                <Button variant="ghost">Histórico</Button>
-              </Link>
-              <Link href="/profile">
-                <Button variant="ghost">Perfil</Button>
+                <Button>Acessar Dashboard</Button>
               </Link>
             </nav>
           </div>
@@ -49,23 +31,30 @@ export default function Home() {
         <div className="py-20 px-4 text-center">
           <div className="container max-w-4xl mx-auto">
             <div className="mb-8">
-              <img src="/credguard-logo.png" alt="CredGuard Logo" className="w-64 h-64 mx-auto mb-4" />
+              <img
+                src="/credguard-logo.png"
+                alt="CredGuard Logo"
+                className="w-64 h-64 mx-auto mb-4"
+              />
             </div>
             <h2 className="text-4xl md:text-5xl font-bold mb-6">
               Plataforma SaaS de Auxílio à Decisão de Crédito
             </h2>
             <p className="text-xl text-muted-foreground mb-4">
-              IA Generativa para scoring de crédito, prevenção de fraudes, chatbots inteligentes e hiperpersonalização.
+              IA Generativa para scoring de crédito, prevenção de fraudes, chatbots inteligentes e
+              hiperpersonalização.
             </p>
             <p className="text-lg text-muted-foreground mb-8">
-              Serviços financeiros integrados em apps não-financeiros (varejo, mobilidade) com Banking as a Service escalável. Conforme marco regulatório da IA 2025.
-            </p>      <div className="flex gap-4 justify-center">
+              Serviços financeiros integrados em apps não-financeiros (varejo, mobilidade) com
+              Banking as a Service escalável. Conforme marco regulatório da IA 2025.
+            </p>
+            <div className="flex gap-4 justify-center">
               <Link href="/dashboard">
                 <Button size="lg" className="text-lg px-8">
                   Acessar Dashboard
                 </Button>
               </Link>
-              <Link href="/predictions">
+              <Link href="/batch-upload">
                 <Button size="lg" variant="outline" className="text-lg px-8">
                   Fazer Predição
                 </Button>
@@ -84,25 +73,36 @@ export default function Home() {
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
-                <Users className="h-10 w-10 text-primary mb-2" />
+                <Lock className="h-10 w-10 text-primary mb-2" />
                 <CardTitle>Multitenant</CardTitle>
                 <CardDescription>
                   Isolamento completo por tenant com schemas dedicados no PostgreSQL
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Seus dados estão totalmente isolados e seguros. Nenhuma outra empresa tem acesso
+                  às suas informações.
+                </p>
+              </CardContent>
             </Card>
 
-            <Link href="/ai-generative">
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <Brain className="h-10 w-10 text-primary mb-2" />
-                  <CardTitle>IA Generativa</CardTitle>
-                  <CardDescription>
-                    Scoring de crédito com LLMs, chatbots inteligentes e hiperpersonalização de ofertas
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
+            <Card>
+              <CardHeader>
+                <TrendingUp className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>IA Generativa</CardTitle>
+                <CardDescription>
+                  Scoring de crédito com LLMs, chatbots inteligentes e hiperpersonalização de
+                  ofertas
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Modelos ML treinados para gerar scores de crédito precisos para CARTÃO, CARNÊ e
+                  EMPRÉSTIMO PESSOAL.
+                </p>
+              </CardContent>
+            </Card>
 
             <Card>
               <CardHeader>
@@ -112,41 +112,60 @@ export default function Home() {
                   Predições precisas para CARTÃO, EMPRÉSTIMO PESSOAL, CARNÊ e FINANCIAMENTO
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Regras de negócio automáticas: filtra clientes com &lt;3 meses de histórico e
+                  inativos &gt;8 meses.
+                </p>
+              </CardContent>
             </Card>
-
-            <Link href="/fraud-prevention">
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <TrendingUp className="h-10 w-10 text-primary mb-2" />
-                  <CardTitle>Prevenção de Fraudes</CardTitle>
-                  <CardDescription>
-                    Detecção de anomalias e fraudes em tempo real com IA avançada
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
 
             <Card>
               <CardHeader>
-                <BarChart3 className="h-10 w-10 text-primary mb-2" />
+                <Upload className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>Prevenção de Fraudes</CardTitle>
+                <CardDescription>
+                  Detecção de anomalias e fraudes em tempo real com IA avançada
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Upload em lote de histórico de clientes via CSV/Excel para processamento
+                  automático.
+                </p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <FileText className="h-10 w-10 text-primary mb-2" />
                 <CardTitle>Dashboards</CardTitle>
                 <CardDescription>
                   Visualizações interativas e estatísticas em tempo real
                 </CardDescription>
               </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Acompanhe métricas de processamento, scores gerados e performance do sistema.
+                </p>
+              </CardContent>
             </Card>
 
-            <Link href="/baas">
-              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
-                <CardHeader>
-                  <Zap className="h-10 w-10 text-primary mb-2" />
-                  <CardTitle>Banking as a Service</CardTitle>
-                  <CardDescription>
-                    Integração de serviços financeiros em apps de varejo e mobilidade
-                  </CardDescription>
-                </CardHeader>
-              </Card>
-            </Link>
+            <Card>
+              <CardHeader>
+                <Zap className="h-10 w-10 text-primary mb-2" />
+                <CardTitle>Banking as a Service</CardTitle>
+                <CardDescription>
+                  Integração de serviços financeiros em apps de varejo e mobilidade
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <p className="text-sm text-muted-foreground">
+                  Enriquecimento opcional com bureaus de crédito (Serasa/Boa Vista) para scores
+                  híbridos.
+                </p>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
@@ -178,9 +197,7 @@ export default function Home() {
       {/* CTA Section */}
       <section className="py-20 bg-primary text-primary-foreground">
         <div className="container text-center">
-          <h3 className="text-3xl font-bold mb-4">
-            Pronto para começar?
-          </h3>
+          <h3 className="text-3xl font-bold mb-4">Pronto para começar?</h3>
           <p className="text-xl mb-8 opacity-90">
             Acesse o dashboard e explore todas as funcionalidades do sistema.
           </p>
@@ -193,11 +210,9 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t py-8 bg-card">
-        <div className="container text-center">
-          <p className="text-sm text-muted-foreground">
-            © 2025 CredGuard - Intelligent Credit MLOPs | Desenvolvido por Giselle Falcão
-          </p>
+      <footer className="border-t bg-card py-8">
+        <div className="container text-center text-sm text-muted-foreground">
+          <p>© 2025 CredGuard - Intelligent Credit MLOps | Desenvolvido por Giselle Falcão</p>
         </div>
       </footer>
     </div>

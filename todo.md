@@ -84,3 +84,10 @@
 - [x] Adicionar gráfico de cache hit/miss rate
 - [x] Adicionar estimativa de custos mensal
 - [x] Adicionar comparação de scores (interno vs híbrido)
+
+## Ajustes para Modelo B2B Puro
+- [x] Remover rotas de Tenants, Models, Predictions, Drift, AI Generative, Fraud Prevention
+- [x] Manter apenas rotas essenciais: Home, Dashboard, BatchUpload, History, BureauConfig, BureauMetrics, Profile
+- [x] Ajustar navegação do Dashboard para remover itens não B2B
+- [x] Atualizar Home para refletir proposta de valor B2B
+- [x] Remover referências a funcionalidades não B2B na interface
