@@ -362,45 +362,82 @@ export const appRouter = router({
         };
       }),
     
-    scoreEvolution: protectedProcedure.query(async () => {
-      const database = await getDb();
-      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-      
-      // Gerar dados simulados de evolução temporal (30 dias)
-      const days = 30;
-      const today = new Date();
-      const evolution = [];
-      
-      for (let i = days - 1; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(date.getDate() - i);
+    scoreEvolution: protectedProcedure
+      .input(z.object({
+        days: z.number().default(30),
+        creditType: z.enum(['ALL', 'CARTAO', 'EMPRESTIMO_PESSOAL', 'CARNE']).default('ALL'),
+      }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
         
-        // Simular score variando entre 3 e 8
-        const score = 5 + Math.sin(i / 5) * 2 + (Math.random() - 0.5);
+        // Gerar dados simulados de evolução temporal
+        const { days, creditType } = input;
+        const today = new Date();
+        const evolution = [];
         
-        evolution.push({
-          date: date.toISOString().split('T')[0],
-          score: Math.max(1, Math.min(10, parseFloat(score.toFixed(1)))),
-        });
-      }
-      
-      return evolution;
-    }),
+        for (let i = days - 1; i >= 0; i--) {
+          const date = new Date(today);
+          date.setDate(date.getDate() - i);
+          
+          // Simular score variando entre 3 e 8 (ajustado por tipo)
+          let baseScore = 5;
+          if (creditType === 'CARTAO') baseScore = 6;
+          if (creditType === 'EMPRESTIMO_PESSOAL') baseScore = 5.5;
+          if (creditType === 'CARNE') baseScore = 4.5;
+          
+          const score = baseScore + Math.sin(i / 5) * 2 + (Math.random() - 0.5);
+          
+          evolution.push({
+            date: date.toISOString().split('T')[0],
+            score: Math.max(1, Math.min(10, parseFloat(score.toFixed(1)))),
+          });
+        }
+        
+        return evolution;
+      }),
     
-    riskDistribution: protectedProcedure.query(async () => {
-      const database = await getDb();
-      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
-      
-      // Simular distribuição de risco baseada em predições
-      // Em produção, isso viria do banco filtrado por userId
-      const distribution = [
-        { risk: 'Baixo (R1-R3)', count: 18, color: '#10B981' },
-        { risk: 'Médio (R4-R6)', count: 15, color: '#F59E0B' },
-        { risk: 'Alto (R7-R10)', count: 9, color: '#DC2626' },
-      ];
-      
-      return distribution;
-    }),
+    riskDistribution: protectedProcedure
+      .input(z.object({
+        creditType: z.enum(['ALL', 'CARTAO', 'EMPRESTIMO_PESSOAL', 'CARNE']).default('ALL'),
+      }))
+      .query(async ({ input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        // Simular distribuição de risco baseada em predições
+        const { creditType } = input;
+        
+        // Ajustar distribuição baseado no tipo de crédito
+        let distribution;
+        if (creditType === 'CARTAO') {
+          distribution = [
+            { risk: 'Baixo (R1-R3)', count: 22, color: '#10B981' },
+            { risk: 'Médio (R4-R6)', count: 12, color: '#F59E0B' },
+            { risk: 'Alto (R7-R10)', count: 8, color: '#DC2626' },
+          ];
+        } else if (creditType === 'EMPRESTIMO_PESSOAL') {
+          distribution = [
+            { risk: 'Baixo (R1-R3)', count: 15, color: '#10B981' },
+            { risk: 'Médio (R4-R6)', count: 18, color: '#F59E0B' },
+            { risk: 'Alto (R7-R10)', count: 9, color: '#DC2626' },
+          ];
+        } else if (creditType === 'CARNE') {
+          distribution = [
+            { risk: 'Baixo (R1-R3)', count: 12, color: '#10B981' },
+            { risk: 'Médio (R4-R6)', count: 14, color: '#F59E0B' },
+            { risk: 'Alto (R7-R10)', count: 16, color: '#DC2626' },
+          ];
+        } else {
+          distribution = [
+            { risk: 'Baixo (R1-R3)', count: 18, color: '#10B981' },
+            { risk: 'Médio (R4-R6)', count: 15, color: '#F59E0B' },
+            { risk: 'Alto (R7-R10)', count: 9, color: '#DC2626' },
+          ];
+        }
+        
+        return distribution;
+      }),
   }),
 });
 

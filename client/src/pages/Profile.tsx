@@ -16,11 +16,20 @@ import { Link } from "wouter";
 import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function Profile() {
+  // Estado dos filtros
+  const [period, setPeriod] = useState<7 | 30 | 90>(30);
+  const [creditType, setCreditType] = useState<'ALL' | 'CARTAO' | 'EMPRESTIMO_PESSOAL' | 'CARNE'>('ALL');
+  
   const { data: user, isLoading: userLoading, refetch } = trpc.profile.me.useQuery();
   const { data: stats, isLoading: statsLoading } = trpc.profile.stats.useQuery();
   const { data: myPredictions, isLoading: predictionsLoading } = trpc.profile.myPredictions.useQuery({ limit: 10, offset: 0 });
-  const { data: scoreEvolution, isLoading: evolutionLoading } = trpc.profile.scoreEvolution.useQuery();
-  const { data: riskDistribution, isLoading: distributionLoading } = trpc.profile.riskDistribution.useQuery();
+  const { data: scoreEvolution, isLoading: evolutionLoading } = trpc.profile.scoreEvolution.useQuery({ 
+    days: period, 
+    creditType 
+  });
+  const { data: riskDistribution, isLoading: distributionLoading } = trpc.profile.riskDistribution.useQuery({ 
+    creditType 
+  });
   
   const updateProfile = trpc.profile.update.useMutation({
     onSuccess: () => {
@@ -219,13 +228,67 @@ export default function Profile() {
               </CardContent>
             </Card>
 
+            {/* Filtros dos Gráficos */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Filtros de Análise</CardTitle>
+                <CardDescription>Personalize a visualização dos gráficos</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid gap-4 md:grid-cols-2">
+                  {/* Filtro de Período */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Período</label>
+                    <div className="flex gap-2">
+                      <Button
+                        variant={period === 7 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPeriod(7)}
+                      >
+                        7 dias
+                      </Button>
+                      <Button
+                        variant={period === 30 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPeriod(30)}
+                      >
+                        30 dias
+                      </Button>
+                      <Button
+                        variant={period === 90 ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => setPeriod(90)}
+                      >
+                        90 dias
+                      </Button>
+                    </div>
+                  </div>
+
+                  {/* Filtro de Tipo de Crédito */}
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium">Tipo de Crédito</label>
+                    <select
+                      className="w-full px-3 py-2 border border-input bg-background rounded-md text-sm"
+                      value={creditType}
+                      onChange={(e) => setCreditType(e.target.value as typeof creditType)}
+                    >
+                      <option value="ALL">Todos</option>
+                      <option value="CARTAO">Cartão de Crédito</option>
+                      <option value="EMPRESTIMO_PESSOAL">Empréstimo Pessoal</option>
+                      <option value="CARNE">Carnê</option>
+                    </select>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
             {/* Gráficos */}
             <div className="grid gap-6 md:grid-cols-2">
               {/* Gráfico de Evolução Temporal */}
               <Card>
                 <CardHeader>
                   <CardTitle>Evolução dos Scores</CardTitle>
-                  <CardDescription>Últimos 30 dias</CardDescription>
+                  <CardDescription>Últimos {period} dias{creditType !== 'ALL' && ` - ${creditType === 'CARTAO' ? 'Cartão' : creditType === 'EMPRESTIMO_PESSOAL' ? 'Empréstimo' : 'Carnê'}`}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {evolutionLoading ? (
@@ -280,7 +343,7 @@ export default function Profile() {
               <Card>
                 <CardHeader>
                   <CardTitle>Distribuição de Risco</CardTitle>
-                  <CardDescription>Por classe de risco</CardDescription>
+                  <CardDescription>Por classe de risco{creditType !== 'ALL' && ` - ${creditType === 'CARTAO' ? 'Cartão' : creditType === 'EMPRESTIMO_PESSOAL' ? 'Empréstimo' : 'Carnê'}`}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   {distributionLoading ? (

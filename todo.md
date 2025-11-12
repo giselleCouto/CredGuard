@@ -91,3 +91,11 @@
 - [x] Implementar gráfico de linha (evolução temporal)
 - [x] Implementar gráfico de pizza (distribuição de risco)
 - [x] Adicionar cards de gráficos na página Profile
+
+## Filtros nos Gráficos de Perfil
+- [x] Atualizar endpoint scoreEvolution para aceitar parâmetro de período
+- [x] Atualizar endpoint riskDistribution para aceitar tipo de crédito
+- [x] Adicionar seletores de período (7/30/90 dias) na interface
+- [x] Adicionar filtro de tipo de crédito (Todos/Cartão/Empréstimo/Carnê)
+- [x] Implementar estado local para controlar filtros
+- [x] Atualizar queries com parâmetros dinâmicos
