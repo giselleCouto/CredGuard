@@ -13,11 +13,14 @@ import { User, Mail, Phone, Building, Briefcase, Calendar, TrendingUp, FileText 
 import { useState } from "react";
 import { toast } from "sonner";
 import { Link } from "wouter";
+import { LineChart, Line, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts";
 
 export default function Profile() {
   const { data: user, isLoading: userLoading, refetch } = trpc.profile.me.useQuery();
   const { data: stats, isLoading: statsLoading } = trpc.profile.stats.useQuery();
   const { data: myPredictions, isLoading: predictionsLoading } = trpc.profile.myPredictions.useQuery({ limit: 10, offset: 0 });
+  const { data: scoreEvolution, isLoading: evolutionLoading } = trpc.profile.scoreEvolution.useQuery();
+  const { data: riskDistribution, isLoading: distributionLoading } = trpc.profile.riskDistribution.useQuery();
   
   const updateProfile = trpc.profile.update.useMutation({
     onSuccess: () => {
@@ -215,6 +218,125 @@ export default function Profile() {
                 )}
               </CardContent>
             </Card>
+
+            {/* Gráficos */}
+            <div className="grid gap-6 md:grid-cols-2">
+              {/* Gráfico de Evolução Temporal */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Evolução dos Scores</CardTitle>
+                  <CardDescription>Últimos 30 dias</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {evolutionLoading ? (
+                    <div className="h-[300px] flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : scoreEvolution && scoreEvolution.length > 0 ? (
+                    <ResponsiveContainer width="100%" height={300}>
+                      <LineChart data={scoreEvolution}>
+                        <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                        <XAxis 
+                          dataKey="date" 
+                          className="text-xs"
+                          tickFormatter={(value) => {
+                            const date = new Date(value);
+                            return `${date.getDate()}/${date.getMonth() + 1}`;
+                          }}
+                        />
+                        <YAxis domain={[0, 10]} className="text-xs" />
+                        <Tooltip 
+                          contentStyle={{ 
+                            backgroundColor: 'hsl(var(--card))', 
+                            border: '1px solid hsl(var(--border))',
+                            borderRadius: '8px'
+                          }}
+                          labelFormatter={(value) => {
+                            const date = new Date(value);
+                            return date.toLocaleDateString('pt-BR');
+                          }}
+                        />
+                        <Legend />
+                        <Line 
+                          type="monotone" 
+                          dataKey="score" 
+                          stroke="#3B82F6" 
+                          strokeWidth={2}
+                          dot={{ fill: '#3B82F6', r: 4 }}
+                          activeDot={{ r: 6 }}
+                          name="Score"
+                        />
+                      </LineChart>
+                    </ResponsiveContainer>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                      <p>Sem dados suficientes</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* Gráfico de Distribuição de Risco */}
+              <Card>
+                <CardHeader>
+                  <CardTitle>Distribuição de Risco</CardTitle>
+                  <CardDescription>Por classe de risco</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {distributionLoading ? (
+                    <div className="h-[300px] flex items-center justify-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : riskDistribution && riskDistribution.length > 0 ? (
+                    <div className="flex flex-col items-center">
+                      <ResponsiveContainer width="100%" height={250}>
+                        <PieChart>
+                          <Pie
+                            data={riskDistribution}
+                            cx="50%"
+                            cy="50%"
+                            labelLine={false}
+                            label={({ risk, percent }) => `${risk.split(' ')[0]} ${(percent * 100).toFixed(0)}%`}
+                            outerRadius={80}
+                            fill="#8884d8"
+                            dataKey="count"
+                          >
+                            {riskDistribution.map((entry, index) => (
+                              <Cell key={`cell-${index}`} fill={entry.color} />
+                            ))}
+                          </Pie>
+                          <Tooltip 
+                            contentStyle={{ 
+                              backgroundColor: 'hsl(var(--card))', 
+                              border: '1px solid hsl(var(--border))',
+                              borderRadius: '8px'
+                            }}
+                          />
+                        </PieChart>
+                      </ResponsiveContainer>
+                      <div className="mt-4 space-y-2 w-full">
+                        {riskDistribution.map((item, index) => (
+                          <div key={index} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-2">
+                              <div 
+                                className="w-3 h-3 rounded-full" 
+                                style={{ backgroundColor: item.color }}
+                              />
+                              <span>{item.risk}</span>
+                            </div>
+                            <span className="font-medium">{item.count} predições</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="h-[300px] flex items-center justify-center text-muted-foreground">
+                      <p>Sem dados suficientes</p>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
 
             {/* Histórico de Predições */}
             <Card>

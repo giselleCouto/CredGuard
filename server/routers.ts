@@ -361,6 +361,46 @@ export const appRouter = router({
           offset: input.offset,
         };
       }),
+    
+    scoreEvolution: protectedProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+      
+      // Gerar dados simulados de evolução temporal (30 dias)
+      const days = 30;
+      const today = new Date();
+      const evolution = [];
+      
+      for (let i = days - 1; i >= 0; i--) {
+        const date = new Date(today);
+        date.setDate(date.getDate() - i);
+        
+        // Simular score variando entre 3 e 8
+        const score = 5 + Math.sin(i / 5) * 2 + (Math.random() - 0.5);
+        
+        evolution.push({
+          date: date.toISOString().split('T')[0],
+          score: Math.max(1, Math.min(10, parseFloat(score.toFixed(1)))),
+        });
+      }
+      
+      return evolution;
+    }),
+    
+    riskDistribution: protectedProcedure.query(async () => {
+      const database = await getDb();
+      if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+      
+      // Simular distribuição de risco baseada em predições
+      // Em produção, isso viria do banco filtrado por userId
+      const distribution = [
+        { risk: 'Baixo (R1-R3)', count: 18, color: '#10B981' },
+        { risk: 'Médio (R4-R6)', count: 15, color: '#F59E0B' },
+        { risk: 'Alto (R7-R10)', count: 9, color: '#DC2626' },
+      ];
+      
+      return distribution;
+    }),
   }),
 });
 

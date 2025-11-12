@@ -83,3 +83,11 @@
 - [x] Adicionar tabela de histórico de predições
 - [x] Adicionar rota /profile no App.tsx
 - [x] Adicionar link para perfil no cabeçalho
+
+## Gráficos na Página de Perfil
+- [x] Instalar biblioteca Recharts
+- [x] Criar endpoint backend para evolução temporal de scores
+- [x] Criar endpoint backend para distribuição de risco
+- [x] Implementar gráfico de linha (evolução temporal)
+- [x] Implementar gráfico de pizza (distribuição de risco)
+- [x] Adicionar cards de gráficos na página Profile
