@@ -4,6 +4,7 @@ import Breadcrumbs from "@/components/Breadcrumbs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Shield, AlertTriangle, Eye, Lock, TrendingUp, Zap } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { Link } from "wouter";
 
 export default function FraudPrevention() {
@@ -15,7 +16,8 @@ export default function FraudPrevention() {
             <Link href="/">
               <div className="flex items-center gap-3 cursor-pointer hover:opacity-80 transition-colors">
                 <Logo size={32} />
-                <h1 className="text-2xl font-bold">CredGuard</h1>
+                <ThemeToggle />
+            <h1 className="text-2xl font-bold">CredGuard</h1>
               </div>
             </Link>
             <nav className="flex gap-6">

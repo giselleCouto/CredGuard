@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, TrendingUp } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useState } from "react";
 import { toast } from "sonner";
 
@@ -51,6 +52,7 @@ export default function Predictions() {
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
             <Logo size={24} />
+            <ThemeToggle />
             <h1 className="text-2xl font-bold">Predicoes</h1>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { Brain, Users, TrendingUp, AlertTriangle, ArrowLeft } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 

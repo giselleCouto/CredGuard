@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft, AlertTriangle } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function DriftMonitoring() {
   const { data: driftData, isLoading } = trpc.drift.overview.useQuery();
@@ -28,6 +29,7 @@ export default function DriftMonitoring() {
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
             <Logo size={24} />
+            <ThemeToggle />
             <h1 className="text-2xl font-bold">Monitoramento de Drift</h1>
           </div>
         </div>

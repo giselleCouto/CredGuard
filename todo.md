@@ -67,3 +67,9 @@
 - [x] Adicionar fontes Inter e IBM Plex Sans via Google Fonts
 - [x] Atualizar variáveis CSS no index.css
 - [x] Aplicar hierarquia tipográfica
+
+## Dark Mode
+- [x] Habilitar tema switchável no App.tsx
+- [x] Criar componente ThemeToggle
+- [x] Adicionar toggle no cabeçalho de todas as páginas
+- [x] Testar persistência do tema

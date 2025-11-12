@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "wouter";
 import { BarChart3, Shield, TrendingUp, Users, Zap, Brain } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
 
 export default function Home() {
@@ -16,6 +17,7 @@ export default function Home() {
               <h1 className="text-2xl font-bold text-foreground">CredGuard</h1>
             </div>
             <nav className="flex items-center gap-4">
+              <ThemeToggle />
               <Link href="/dashboard">
                 <Button variant="ghost">Dashboard</Button>
               </Link>

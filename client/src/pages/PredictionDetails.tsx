@@ -7,6 +7,7 @@ import { trpc } from "@/lib/trpc";
 import { Link, useParams } from "wouter";
 import { RiskScoreWithTooltip } from "@/components/RiskScore";
 import { ArrowLeft, Calendar, Building2, CreditCard, TrendingUp, DollarSign } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default function PredictionDetails() {
   const params = useParams();
@@ -95,6 +96,7 @@ export default function PredictionDetails() {
               </Button>
             </Link>
             <Logo size={24} />
+            <ThemeToggle />
             <h1 className="text-2xl font-bold">Detalhes da Predição</h1>
           </div>
         </div>

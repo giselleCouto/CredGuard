@@ -11,6 +11,7 @@ import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { RiskScoreWithTooltip } from "@/components/RiskScore";
 import { ArrowLeft, History as HistoryIcon, ChevronLeft, ChevronRight } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import { useState, useMemo } from "react";
 
 export default function History() {
@@ -69,6 +70,7 @@ export default function History() {
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
             <Logo size={24} />
+            <ThemeToggle />
             <h1 className="text-2xl font-bold">Histórico de Predições</h1>
           </div>
         </div>

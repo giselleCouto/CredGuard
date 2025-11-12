@@ -5,6 +5,7 @@ import { Badge } from "@/components/ui/badge";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
 import { ArrowLeft } from "lucide-react";
+import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
@@ -20,6 +21,7 @@ export default function Models() {
               <Button variant="ghost" size="icon"><ArrowLeft className="h-5 w-5" /></Button>
             </Link>
             <Logo size={24} />
+            <ThemeToggle />
             <h1 className="text-2xl font-bold">Modelos ML</h1>
           </div>
         </div>
