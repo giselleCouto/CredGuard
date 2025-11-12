@@ -35,12 +35,12 @@
 - [x] Formato CSV: cpf,nome,produto,score_prob_inadimplencia,faixa_score,motivo_exclusao,data_processamento
 
 ## Interface de Upload
-- [ ] Página de Upload com drag-and-drop
-- [ ] Validação de arquivo (CSV/Excel, tamanho máximo)
-- [ ] Preview dos dados antes do upload
-- [ ] Lista de jobs em processamento
-- [ ] Histórico de uploads anteriores
-- [ ] Download de resultados
+- [x] Página de Upload com drag-and-drop
+- [x] Validação de arquivo (CSV/Excel, tamanho máximo)
+- [x] Preview dos dados antes do upload
+- [x] Lista de jobs em processamento
+- [x] Histórico de uploads anteriores
+- [x] Download de resultados
 
 ## Segurança e Isolamento
 - [ ] Row-Level Security (RLS) no PostgreSQL por tenant
