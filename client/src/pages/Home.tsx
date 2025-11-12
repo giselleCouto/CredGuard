@@ -13,7 +13,7 @@ export default function Home() {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Logo size={32} />
-              <h1 className="text-2xl font-bold text-foreground">Behavior SaaS</h1>
+              <h1 className="text-2xl font-bold text-foreground">CredGuard</h1>
             </div>
             <nav className="flex items-center gap-4">
               <Link href="/dashboard">
@@ -40,16 +40,21 @@ export default function Home() {
       </header>
 
       {/* Hero Section */}
-      <section className="bg-gradient-to-b from-primary/10 to-background py-20">
-        <div className="container">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-5xl font-bold mb-6 text-foreground">
-              Análise de Risco de Crédito com Machine Learning
+      <section className="bg-gradient-to-b from-primary/10 to-background">
+        <div className="py-20 px-4 text-center">
+          <div className="container max-w-4xl mx-auto">
+            <div className="mb-8">
+              <img src="/credguard-logo.png" alt="CredGuard Logo" className="w-64 h-64 mx-auto mb-4" />
+            </div>
+            <h2 className="text-4xl md:text-5xl font-bold mb-6">
+              Plataforma SaaS de Auxílio à Decisão de Crédito
             </h2>
-            <p className="text-xl text-muted-foreground mb-8">
-              Sistema SaaS completo para análise de risco de crédito multitenant com detecção automática de drift e dashboards interativos.
+            <p className="text-xl text-muted-foreground mb-4">
+              IA Generativa para scoring de crédito, prevenção de fraudes, chatbots inteligentes e hiperpersonalização.
             </p>
-            <div className="flex gap-4 justify-center">
+            <p className="text-lg text-muted-foreground mb-8">
+              Serviços financeiros integrados em apps não-financeiros (varejo, mobilidade) com Banking as a Service escalável. Conforme marco regulatório da IA 2025.
+            </p>      <div className="flex gap-4 justify-center">
               <Link href="/dashboard">
                 <Button size="lg" className="text-lg px-8">
                   Acessar Dashboard
@@ -82,15 +87,17 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <Brain className="h-10 w-10 text-primary mb-2" />
-                <CardTitle>Modelos ML</CardTitle>
-                <CardDescription>
-                  Gestão completa de modelos de Machine Learning por tipo de crédito
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link href="/ai-generative">
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <Brain className="h-10 w-10 text-primary mb-2" />
+                  <CardTitle>IA Generativa</CardTitle>
+                  <CardDescription>
+                    Scoring de crédito com LLMs, chatbots inteligentes e hiperpersonalização de ofertas
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
             <Card>
               <CardHeader>
@@ -102,15 +109,17 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <TrendingUp className="h-10 w-10 text-primary mb-2" />
-                <CardTitle>Detecção de Drift</CardTitle>
-                <CardDescription>
-                  Monitoramento automático de drift com alertas em tempo real
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link href="/fraud-prevention">
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <TrendingUp className="h-10 w-10 text-primary mb-2" />
+                  <CardTitle>Prevenção de Fraudes</CardTitle>
+                  <CardDescription>
+                    Detecção de anomalias e fraudes em tempo real com IA avançada
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
 
             <Card>
               <CardHeader>
@@ -122,15 +131,17 @@ export default function Home() {
               </CardHeader>
             </Card>
 
-            <Card>
-              <CardHeader>
-                <Zap className="h-10 w-10 text-primary mb-2" />
-                <CardTitle>Alta Performance</CardTitle>
-                <CardDescription>
-                  87 req/s de throughput com latência menor que 100ms
-                </CardDescription>
-              </CardHeader>
-            </Card>
+            <Link href="/baas">
+              <Card className="cursor-pointer hover:shadow-lg transition-shadow">
+                <CardHeader>
+                  <Zap className="h-10 w-10 text-primary mb-2" />
+                  <CardTitle>Banking as a Service</CardTitle>
+                  <CardDescription>
+                    Integração de serviços financeiros em apps de varejo e mobilidade
+                  </CardDescription>
+                </CardHeader>
+              </Card>
+            </Link>
           </div>
         </div>
       </section>
@@ -178,8 +189,10 @@ export default function Home() {
 
       {/* Footer */}
       <footer className="border-t py-8 bg-card">
-        <div className="container text-center text-muted-foreground">
-          <p>© 2025 Behavior SaaS - Desenvolvido por Giselle Falcão</p>
+        <div className="container text-center">
+          <p className="text-sm text-muted-foreground">
+            © 2025 CredGuard - Intelligent Credit MLOPs | Desenvolvido por Giselle Falcão
+          </p>
         </div>
       </footer>
     </div>

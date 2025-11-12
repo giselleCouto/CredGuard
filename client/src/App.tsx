@@ -12,6 +12,9 @@ import Predictions from "./pages/Predictions";
 import DriftMonitoring from "./pages/DriftMonitoring";
 import History from "./pages/History";
 import PredictionDetails from "./pages/PredictionDetails";
+import AIGenerative from "./pages/AIGenerative";
+import FraudPrevention from "./pages/FraudPrevention";
+import BankingAsService from "./pages/BankingAsService";
 
 function Router() {
   return (
@@ -24,6 +27,9 @@ function Router() {
       <Route path={"/drift"} component={DriftMonitoring} />
       <Route path={"/history"} component={History} />
       <Route path={"/predictions/:id"} component={PredictionDetails} />
+      <Route path={"/ai-generative"} component={AIGenerative} />
+      <Route path={"/fraud-prevention"} component={FraudPrevention} />
+      <Route path={"/baas"} component={BankingAsService} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

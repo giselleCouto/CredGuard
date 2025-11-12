@@ -1,74 +1,53 @@
-# Behavior SaaS - TODO List
+# CredGuard - Plataforma SaaS de Auxílio à Decisão de Crédito
 
-## Banco de Dados
-- [x] Schema de tenants (organizações)
-- [x] Schema de modelos ML
-- [x] Schema de predições
-- [x] Schema de métricas de drift
-- [x] Seed data com dados de exemplo
+## Rebranding CredGuard
+- [x] Renomear "Behavior SaaS" para "CredGuard" em todas as páginas
+- [x] Adicionar logo CredGuard fornecido pelo usuário
+- [x] Atualizar descrições: plataforma de auxílio à decisão (não um banco)
+- [x] Atualizar tagline: "Intelligent Credit MLOPs"
 
-## Backend (tRPC)
-- [x] Router de tenants (listar, criar, detalhes)
-- [x] Router de modelos (listar, upload, promover)
-- [x] Router de predições (criar, listar, estatísticas)
-- [x] Router de drift (overview, críticos, histórico)
-- [x] Router de dashboard (estatísticas gerais)
+## Funcionalidades Principais (Já Implementadas)
+- [x] Sistema multitenant
+- [x] Gestão de modelos ML
+- [x] Predições de risco
+- [x] Monitoramento de drift
+- [x] Histórico de predições
+- [x] Página de detalhes de predição
+- [x] Breadcrumbs e navegação
 
-## Frontend - Estrutura
-- [x] Layout principal com navegação
-- [x] Página inicial (landing page)
-- [x] Dashboard principal
-- [x] Sistema de rotas
+## Novas Funcionalidades - IA Generativa
+- [x] Página "IA Generativa" - Scoring com LLMs
+- [x] Chatbot inteligente para consultas de crédito
+- [x] Sistema de hiperpersonalização de ofertas
+- [x] Geração automática de relatórios de risco
 
-## Frontend - Páginas
-- [x] Página de Tenants (listagem e criação)
-- [x] Página de Modelos (listagem e gestão)
-- [x] Página de Predições (formulário e resultados)
-- [x] Página de Monitoramento de Drift
-- [x] Página de Estatísticas
+## Prevenção de Fraudes
+- [x] Página "Prevenção de Fraudes" com IA
+- [x] Detecção de anomalias em tempo real
+- [x] Score de fraude por transação
+- [x] Dashboard de alertas de fraude
 
-## Design e UX
-- [x] Tema e cores profissionais
-- [x] Componentes responsivos
-- [x] Loading states
-- [x] Error handling
-- [x] Toasts de feedback
+## Lista de Usuários e Scores
+- [ ] Página "Usuários" com lista completa
+- [ ] Score de crédito por tipo de produto
+- [ ] Filtros avançados (score, produto, status)
+- [ ] Exportação de listas
 
-## Integração
-- [x] Conectar frontend com backend
-- [x] Testar fluxos completos
-- [x] Validações de formulários
+## Banking as a Service (BaaS)
+- [x] Página "BaaS" - Integração para apps não-financeiros
+- [x] Casos de uso: Varejo (e-commerce, marketplace)
+- [x] Casos de uso: Mobilidade (ride-sharing, delivery)
+- [x] APIs REST documentadas
+- [x] SDKs para integração
 
-## Deploy
-- [x] Checkpoint final
-- [x] Publicação
-- [x] Testes de produção
+## Conformidade e Regulação
+- [x] Página "Conformidade" - Marco Regulatório IA 2025
+- [x] Transparência algorítmica
+- [x] Auditoria de decisões
+- [x] Privacidade e LGPD
 
-## Novas Funcionalidades
-- [x] Página de histórico de predições com tabela paginada
-- [x] Filtros por data (início e fim)
-- [x] Filtro por tipo de crédito
-- [x] Filtro por tenant
-- [x] Paginação no backend
-- [x] Exibição de resultados detalhados
-
-## Ajustes de Branding
-- [x] Remover "KAB" de todas as páginas
-- [x] Atualizar título para "Behavior SaaS"
-- [x] Atualizar rodapé e cabeçalhos
-
-## Logo e Identidade Visual
-- [x] Criar logotipo SVG personalizado
-- [x] Substituir ícone Brain por logo em todas as páginas
-- [x] Adicionar componente Logo reutilizável
-
-## Sistema de Navegação
-- [x] Criar componente Breadcrumbs reutilizável
-- [x] Integrar breadcrumbs em todas as páginas internas
-- [x] Adicionar navegação hierárquica (Home > Dashboard > Seção)
-
-## Página de Detalhes
-- [x] Criar endpoint backend para buscar predição por ID
-- [x] Criar página PredictionDetails com informações completas
-- [x] Adicionar links clicáveis no histórico
-- [x] Implementar breadcrumbs (Início > Dashboard > Histórico > Detalhes)
+## Escalabilidade
+- [x] Arquitetura para milhões de requisições
+- [x] Cache distribuído
+- [x] Processamento assíncrono
+- [x] Documentação de infraestrutura
