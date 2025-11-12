@@ -105,3 +105,20 @@ temp/
 *.db
 *.sqlite
 *.sqlite3
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+.venv/
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IMPORTANT: ML models are tracked in git (essential for application)
+# Do NOT add ml_models/*.pkl to .gitignore

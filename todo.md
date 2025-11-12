@@ -91,3 +91,36 @@
 - [x] Ajustar navegação do Dashboard para remover itens não B2B
 - [x] Atualizar Home para refletir proposta de valor B2B
 - [x] Remover referências a funcionalidades não B2B na interface
+
+## Documentação Técnica
+- [x] Criar documento técnico completo (TECHNICAL_DOCUMENTATION.md)
+- [x] Incluir visão geral da plataforma e arquitetura
+- [x] Detalhar funcionalidades principais
+- [x] Documentar processos de negócio
+- [x] Especificar modelos ML utilizados (sem detalhes proprietários)
+- [x] Incluir diagramas de fluxo
+- [x] Adicionar especificações técnicas
+- [x] Documentar APIs e integrações
+
+## Migração para AWS
+- [x] Criar guia de migração (AWS_MIGRATION_GUIDE.md)
+- [x] Documentar arquitetura AWS recomendada
+- [x] Criar scripts de deploy (Terraform/CloudFormation)
+- [x] Configurar CI/CD com GitHub Actions
+- [x] Documentar configuração de RDS (MySQL)
+- [x] Documentar configuração de S3
+- [x] Documentar configuração de EC2/ECS/Lambda
+- [x] Criar checklist de migração passo a passo
+- [x] Documentar variáveis de ambiente necessárias
+- [x] Preparar arquivos do projeto para exportação
+
+## Integração de Modelos ML Reais
+- [x] Criar diretório models/ para armazenar arquivos .pkl
+- [x] Copiar modelos treinados (fa_8.pkl, fa_11.pkl, fa_12.pkl, fa_15.pkl, scaler_num.pkl, odds_threshold_bins.pkl)
+- [x] Criar serviço Python de predição (mlService.py)
+- [x] Implementar carregamento de modelos na inicialização
+- [x] Implementar função de predição que usa modelos reais
+- [x] Atualizar batch router para chamar serviço ML
+- [x] Adicionar dependências Python (scikit-learn, pandas, numpy, joblib)
+- [x] Documentar uso dos modelos no TECHNICAL_DOCUMENTATION.md
+- [x] Subir código completo para GitHub (gisellebhs/behavior-kab-saas)

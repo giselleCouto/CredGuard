@@ -391,13 +391,28 @@ export const appRouter = router({
             else if (mesesSemMovimento > 8) {
               motivoExclusao = 'inativo_8_meses';
             }
-            // Gerar score
+            // Gerar score usando modelo ML real
             else {
-              // Simulação de modelo ML (score interno)
-              const diasAtraso = parseInt(row.dias_atraso || '0');
-              const baseScore = Math.random();
-              const ajuste = diasAtraso > 0 ? 0.3 : -0.1;
-              const scoreInterno = Math.max(0, Math.min(1, baseScore + ajuste));
+              // Importar serviço ML
+              const { predictScore } = await import("./mlPredictionService");
+              
+              // Preparar dados do cliente para predição
+              const customerMLData = {
+                cpf: row.cpf || '',
+                nome: row.nome || '',
+                produto: row.produto as any,
+                data_primeira_compra: row.data_compra,
+                data_ultima_compra: row.data_pagamento || row.data_compra,
+                total_compras: 1, // Simplificação - em produção, agregar dados históricos
+                valor_total_compras: parseFloat(row.valor_compra || '0'),
+                total_pagamentos_em_dia: row.status_pagamento === 'pago' ? 1 : 0,
+                total_atrasos: parseInt(row.dias_atraso || '0') > 0 ? 1 : 0,
+                maior_atraso: parseInt(row.dias_atraso || '0'),
+              };
+              
+              // Fazer predição com modelo ML real
+              const mlResult = await predictScore(customerMLData);
+              const scoreInterno = mlResult.score_prob_inadimplencia;
               
               // Enriquecimento com bureau (se habilitado)
               const { enrichWithBureau, calculateHybridScore, isBureauEnabled } = await import("./bureauService");
