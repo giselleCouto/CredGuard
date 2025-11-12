@@ -174,9 +174,13 @@ export default function History() {
                       {data.predictions.map((prediction) => {
                         const tenant = tenants?.find((t) => t.id === prediction.tenantId);
                         return (
-                          <TableRow key={prediction.id}>
-                            <TableCell className="font-mono text-xs">
-                              {prediction.predictionId.substring(0, 12)}...
+                          <TableRow 
+                            key={prediction.id} 
+                            className="cursor-pointer hover:bg-muted/50 transition-colors"
+                            onClick={() => window.location.href = `/predictions/${prediction.id}`}
+                          >
+                            <TableCell className="font-medium">
+                              <span className="text-primary hover:underline">#{prediction.id}</span>
                             </TableCell>
                             <TableCell className="text-sm">
                               {formatDate(prediction.createdAt)}

@@ -66,3 +66,9 @@
 - [x] Criar componente Breadcrumbs reutilizável
 - [x] Integrar breadcrumbs em todas as páginas internas
 - [x] Adicionar navegação hierárquica (Home > Dashboard > Seção)
+
+## Página de Detalhes
+- [x] Criar endpoint backend para buscar predição por ID
+- [x] Criar página PredictionDetails com informações completas
+- [x] Adicionar links clicáveis no histórico
+- [x] Implementar breadcrumbs (Início > Dashboard > Histórico > Detalhes)

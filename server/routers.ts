@@ -146,6 +146,17 @@ export const appRouter = router({
         };
       }),
     
+    getById: publicProcedure
+      .input(z.object({ id: z.number() }))
+      .query(async ({ input }) => {
+        const predictions = await db.getAllPredictions();
+        const prediction = predictions.find((p) => p.id === input.id);
+        if (!prediction) {
+          throw new Error("Predi\u00e7\u00e3o n\u00e3o encontrada");
+        }
+        return prediction;
+      }),
+    
     listByTenant: publicProcedure
       .input(z.object({ tenantId: z.number() }))
       .query(async ({ input }) => {

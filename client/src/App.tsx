@@ -11,6 +11,7 @@ import Models from "./pages/Models";
 import Predictions from "./pages/Predictions";
 import DriftMonitoring from "./pages/DriftMonitoring";
 import History from "./pages/History";
+import PredictionDetails from "./pages/PredictionDetails";
 
 function Router() {
   return (
@@ -22,6 +23,7 @@ function Router() {
       <Route path={"/predictions"} component={Predictions} />
       <Route path={"/drift"} component={DriftMonitoring} />
       <Route path={"/history"} component={History} />
+      <Route path={"/predictions/:id"} component={PredictionDetails} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>
