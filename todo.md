@@ -242,3 +242,9 @@
 - [x] Procurar imports problemáticos
 - [x] Ajustar configuração para produção
 - [ ] Publicar com sucesso
+
+## Correção react-dropzone não encontrado
+- [x] Verificar package.json
+- [x] Instalar react-dropzone se ausente
+- [x] Ajustar Dockerfile se necessário (não foi necessário)
+- [ ] Publicar com sucesso
