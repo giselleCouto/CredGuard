@@ -206,3 +206,14 @@
 - [x] Testar upload de modelo .pkl (interface pronta)
 - [x] Testar detecção de drift (interface pronta)
 - [x] Validar estatísticas no Dashboard
+
+## Autenticação Multi-Tenant
+- [x] Adicionar campo tenantId ao schema users
+- [x] Atualizar batch endpoints (upload, getJob, listJobs, downloadCsv, stats)
+- [x] Atualizar models endpoints (upload, promote, list, getProductionModel)
+- [x] Atualizar drift endpoints (detect, history, activeAlerts)
+- [x] Atualizar sustentation endpoints (subscribe, requestSupport, listTickets, getActivePlan)
+- [x] Atualizar bureau endpoints (getConfig, updateConfig, getMetrics, getCacheStats, getScoreDistribution)
+- [x] Atualizar profile endpoint (me)
+- [x] Aplicar migração do banco de dados (0007_nostalgic_scarlet_witch.sql)
+- [x] Testar isolamento de dados (0 erros TypeScript)

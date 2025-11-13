@@ -50,6 +50,13 @@
       "when": 1762995555683,
       "tag": "0006_lean_blue_blade",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1762999174263,
+      "tag": "0007_nostalgic_scarlet_witch",
+      "breakpoints": true
     }
   ]
 }

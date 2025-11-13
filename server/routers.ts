@@ -228,7 +228,7 @@ export const appRouter = router({
         // Criar job no banco
         await database.insert(batchJobs).values({
           jobId,
-          tenantId: 1, // TODO: Pegar do ctx.user.tenantId
+          tenantId: ctx.user.tenantId,
           fileName: input.fileName,
           fileSize: input.fileSize,
           status: 'queued',
@@ -257,7 +257,7 @@ export const appRouter = router({
             
             // Salvar dados raw
             await database.insert(customerData).values({
-              tenantId: 1,
+              tenantId: ctx.user.tenantId,
               batchJobId,
               cpf: row.cpf || '',
               nome: row.nome || '',
@@ -357,7 +357,7 @@ export const appRouter = router({
             
             // Salvar score
             await database.insert(customerScores).values({
-              tenantId: 1,
+              tenantId: ctx.user.tenantId,
               batchJobId,
               cpf: row.cpf || '',
               nome: row.nome || '',
@@ -430,14 +430,14 @@ export const appRouter = router({
         limit: z.number().default(20),
         offset: z.number().default(0),
       }))
-      .query(async ({ input }) => {
+      .query(async ({ ctx, input }) => {
         const database = await getDb();
         if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
         
         const jobs = await database
           .select()
           .from(batchJobs)
-          .where(eq(batchJobs.tenantId, 1)) // TODO: Filtrar por ctx.user.tenantId
+          .where(eq(batchJobs.tenantId, ctx.user.tenantId))
           .orderBy(desc(batchJobs.createdAt))
           .limit(input.limit)
           .offset(input.offset);
@@ -482,7 +482,7 @@ export const appRouter = router({
         const database = await getDb();
         if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
         
-        const tenantId = 1; // TODO: ctx.user.tenantId
+        const tenantId = ctx.user.tenantId;
         
         // Total de jobs
         const [totalJobsResult] = await database
@@ -681,7 +681,7 @@ export const appRouter = router({
     getConfig: protectedProcedure
       .query(async ({ ctx }) => {
         const { isBureauEnabled } = await import("./bureauService");
-        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        const tenantId = ctx.user.tenantId;
         const enabled = await isBureauEnabled(tenantId);
         return {
           bureauEnabled: enabled,
@@ -696,7 +696,7 @@ export const appRouter = router({
       }))
       .mutation(async ({ input, ctx }) => {
         const { setBureauEnabled } = await import("./bureauService");
-        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        const tenantId = ctx.user.tenantId;
         await setBureauEnabled(tenantId, input.bureauEnabled);
         return {
           success: true,
@@ -710,7 +710,7 @@ export const appRouter = router({
         const database = await getDb();
         if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
         
-        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        const tenantId = ctx.user.tenantId;
         const now = new Date();
         const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
         
@@ -758,7 +758,7 @@ export const appRouter = router({
         const database = await getDb();
         if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
         
-        const tenantId = 1; // TODO: Obter do ctx.user.tenantId
+        const tenantId = ctx.user.tenantId;
         
         // Buscar scores dos últimos 30 dias
         const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
@@ -830,7 +830,7 @@ export const appRouter = router({
         
         try {
           const result = await uploadModel({
-            tenantId: 1, // TODO: ctx.user.tenantId
+            tenantId: ctx.user.tenantId,
             modelName: input.modelName,
             version: input.version,
             product: input.product,
@@ -863,7 +863,7 @@ export const appRouter = router({
         
         const result = await promoteModel({
           modelVersionId: input.modelVersionId,
-          tenantId: 1, // TODO: ctx.user.tenantId
+          tenantId: ctx.user.tenantId,
           product: input.product,
           promotedBy: ctx.user.id,
           reason: input.reason,
@@ -1020,7 +1020,7 @@ export const appRouter = router({
         
         // Criar plano
         await database.insert(sustentationPlans).values({
-          tenantId: 1, // TODO: ctx.user.tenantId
+          tenantId: ctx.user.tenantId,
           planType: input.planType,
           monthlyPrice: prices[input.planType].toString(),
           status: 'active',
@@ -1060,7 +1060,7 @@ export const appRouter = router({
         
         // Criar ticket
         await database.insert(sustentationTickets).values({
-          tenantId: 1, // TODO: ctx.user.tenantId
+          tenantId: ctx.user.tenantId,
           planId: plan[0].id,
           product: input.product,
           type: 'manual_request',
