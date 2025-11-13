@@ -196,7 +196,7 @@ Gera:
 - Impossível acessar dados de outros tenants
 
 ### Autenticação
-- Manus OAuth com sessão via cookie
+- OAuth com sessão via cookie
 - JWT para validação de sessão
 - Rotas protegidas com `protectedProcedure`
 
@@ -264,4 +264,4 @@ Para dúvidas ou suporte, entre em contato através do GitHub Issues.
 
 ---
 
-**Desenvolvido com ❤️ usando [Manus Platform](https://manus.im)**
+**Desenvolvido por Giselle Falcão**
