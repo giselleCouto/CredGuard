@@ -225,3 +225,10 @@
 - [x] Criar .dockerignore otimizado
 - [x] Testar build localmente (deps stage OK)
 - [ ] Publicar com sucesso
+
+## Correção de Vite Build Error
+- [x] Testar build Vite localmente (OK - build funciona)
+- [x] Identificar problema (Dockerfile copiava tudo com COPY . .)
+- [x] Corrigir Dockerfile (cópia explícita de diretórios)
+- [x] Atualizar .dockerignore (menos restritivo)
+- [ ] Publicar com sucesso no Manus

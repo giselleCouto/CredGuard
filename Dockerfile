@@ -23,9 +23,17 @@ RUN npm install -g pnpm@9
 
 # Copy dependencies from deps stage
 COPY --from=deps /app/node_modules ./node_modules
+COPY --from=deps /app/package.json /app/pnpm-lock.yaml ./
 
-# Copy source code
-COPY . .
+# Copy source code (explicit paths to avoid conflicts)
+COPY client ./client
+COPY server ./server
+COPY drizzle ./drizzle
+COPY shared ./shared
+COPY ml_models ./ml_models
+COPY tsconfig.json ./
+COPY vite.config.ts ./
+COPY index.html ./
 
 # Build frontend and backend
 RUN pnpm build
@@ -50,9 +58,8 @@ RUN pip3 install --no-cache-dir -r ml_models/requirements.txt
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
-COPY --from=builder /app/client/dist ./client/dist
 
-# Copy necessary files
+# Copy necessary runtime files
 COPY drizzle ./drizzle
 COPY ml_models ./ml_models
 COPY server/_core ./server/_core

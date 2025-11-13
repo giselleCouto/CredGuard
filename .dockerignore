@@ -1,19 +1,15 @@
-# Dependencies
+# Dependencies (will be installed fresh)
 node_modules
 .pnpm-store
 
-# Build artifacts
+# Build artifacts (will be generated)
 dist
-*.log
 *.tsbuildinfo
 
 # Development files
 .git
-.github
 .vscode
 .idea
-*.md
-!README.md
 
 # Test files
 **/*.test.ts
@@ -23,7 +19,7 @@ dist
 __tests__
 coverage
 
-# Environment files
+# Environment files (use secrets instead)
 .env
 .env.local
 .env.*.local
@@ -32,12 +28,10 @@ coverage
 .DS_Store
 Thumbs.db
 
-# Deployment files (not needed in image)
-deployment
-AWS_MIGRATION_GUIDE.md
-RUNBOOK_*.md
-NEXT_STEPS.md
-IMPLEMENTATION_STATUS.md
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
 
 # Temporary files
 tmp
