@@ -324,7 +324,7 @@ export async function detectDrift(
   // Buscar modelo em produção
   const productionModel = await getProductionModel(tenantId, product);
   if (!productionModel) {
-    return { drift: false, message: "Nenhum modelo em produção" };
+    return { driftDetected: false, psi: 0, status: "stable" as const, message: "Nenhum modelo em produção", recommendation: "Configure um modelo em produção primeiro" };
   }
 
   // Buscar scores dos últimos 30 dias (baseline)
@@ -360,7 +360,7 @@ export async function detectDrift(
     .limit(1000);
 
   if (baselineScores.length < 100 || currentScores.length < 100) {
-    return { drift: false, message: "Dados insuficientes para calcular drift" };
+    return { driftDetected: false, psi: 0, status: "stable" as const, message: "Dados insuficientes para calcular drift", recommendation: "Aguarde mais dados serem processados" };
   }
 
   const baselineValues = baselineScores.map((r) => parseFloat(r.score || '0'));
@@ -390,9 +390,14 @@ export async function detectDrift(
   });
 
   return {
-    drift: status !== "stable",
+    driftDetected: status !== "stable",
     psi,
     status,
+    message: status === "critical"
+      ? "Drift crítico detectado!"
+      : status === "warning"
+      ? "Drift moderado detectado"
+      : "Modelo estável",
     recommendation: status === "critical" 
       ? "Retreinamento urgente recomendado" 
       : status === "warning"

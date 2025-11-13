@@ -10,7 +10,7 @@ import Logo from "@/components/Logo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Models() {
-  const { data: models, isLoading } = trpc.models.list.useQuery();
+  const { data: models, isLoading } = trpc.models.list.useQuery({});
 
   return (
     <div className="min-h-screen bg-background">

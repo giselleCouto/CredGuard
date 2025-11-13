@@ -195,3 +195,7 @@
 - [x] Criar DriftMonitoring.tsx com gráficos PSI
 - [x] Adicionar rotas /models e /drift no App.tsx
 - [x] Adicionar navegação no Dashboard.tsx
+
+## Correção de Erros TypeScript Finais
+- [x] Corrigir tipo de retorno drift.detect (driftDetected e psi obrigatórios)
+- [x] Corrigir Models.tsx useQuery (adicionar parâmetro vazio)
