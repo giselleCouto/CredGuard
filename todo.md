@@ -269,3 +269,8 @@
 - [x] Localizar uso de psi.toFixed() em DriftMonitoring.tsx
 - [x] Converter PSI de string para número
 - [x] Testar página /drift
+
+## Correção Select.Item value vazio em History
+- [x] Localizar Select.Item com value="" em History.tsx
+- [x] Substituir por valor válido (ex: "all")
+- [x] Testar página /history

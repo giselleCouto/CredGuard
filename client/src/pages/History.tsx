@@ -17,8 +17,8 @@ import { useState, useMemo } from "react";
 export default function History() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
-  const [tenantId, setTenantId] = useState<string>("");
-  const [creditType, setCreditType] = useState<string>("");
+  const [tenantId, setTenantId] = useState<string>("all");
+  const [creditType, setCreditType] = useState<string>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
@@ -27,8 +27,8 @@ export default function History() {
   const filters = useMemo(() => ({
     page,
     pageSize,
-    ...(tenantId && { tenantId: parseInt(tenantId) }),
-    ...(creditType && { creditType: creditType as any }),
+    ...(tenantId && tenantId !== "all" && { tenantId: parseInt(tenantId) }),
+    ...(creditType && creditType !== "all" && { creditType: creditType as any }),
     ...(startDate && { startDate }),
     ...(endDate && { endDate }),
   }), [page, pageSize, tenantId, creditType, startDate, endDate]);
@@ -36,8 +36,8 @@ export default function History() {
   const { data, isLoading } = trpc.predictions.history.useQuery(filters);
 
   const handleClearFilters = () => {
-    setTenantId("");
-    setCreditType("");
+    setTenantId("all");
+    setCreditType("all");
     setStartDate("");
     setEndDate("");
     setPage(1);
@@ -94,7 +94,7 @@ export default function History() {
                     <SelectValue placeholder="Todos os tenants" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     {tenants?.map((t) => (
                       <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
                     ))}
@@ -109,7 +109,7 @@ export default function History() {
                     <SelectValue placeholder="Todos os tipos" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Todos</SelectItem>
+                    <SelectItem value="all">Todos</SelectItem>
                     <SelectItem value="CARTAO">Cartão de Crédito</SelectItem>
                     <SelectItem value="EMPRESTIMO_PESSOAL">Empréstimo Pessoal</SelectItem>
                     <SelectItem value="CARNE">Carnê</SelectItem>
