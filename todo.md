@@ -274,3 +274,9 @@
 - [x] Localizar Select.Item com value="" em History.tsx
 - [x] Substituir por valor válido (ex: "all")
 - [x] Testar página /history
+
+## Substituir filtro Tenant por CPF em History
+- [x] Remover filtro de tenant da interface
+- [x] Adicionar campo de input para CPF
+- [x] Ajustar backend para filtrar por CPF
+- [x] Testar busca por CPF

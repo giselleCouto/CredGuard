@@ -61,25 +61,35 @@ export const appRouter = router({
       return [];
     }),
     
-    history: publicProcedure
+    history: protectedProcedure
       .input(z.object({
         page: z.number().min(1).default(1),
         pageSize: z.number().min(1).max(100).default(20),
-        tenantId: z.number().optional(),
+        cpf: z.string().optional(),
         creditType: z.enum(["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE", "FINANCIAMENTO"]).optional(),
         startDate: z.string().optional(),
         endDate: z.string().optional(),
       }))
-      .query(async ({ input }) => {
-        const { page, pageSize, tenantId, creditType, startDate, endDate } = input;
+      .query(async ({ input, ctx }) => {
+        const { page, pageSize, cpf, creditType, startDate, endDate } = input;
         const offset = (page - 1) * pageSize;
         
         // Buscar todas as predições e aplicar filtros
         let allPredictions = await db.getAllPredictions();
         
-        // Filtrar por tenant
-        if (tenantId) {
-          allPredictions = allPredictions.filter((p) => p.tenantId === tenantId);
+        // Filtrar automaticamente por tenant do usuário logado (isolamento de dados)
+        allPredictions = allPredictions.filter((p) => p.tenantId === ctx.user.tenantId);
+        
+        // Filtrar por CPF se fornecido
+        if (cpf) {
+          allPredictions = allPredictions.filter((p) => {
+            try {
+              const inputData = JSON.parse(p.inputData);
+              return inputData.cpf && inputData.cpf.includes(cpf.replace(/\D/g, ''));
+            } catch {
+              return false;
+            }
+          });
         }
         
         // Filtrar por tipo de crédito

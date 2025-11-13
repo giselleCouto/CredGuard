@@ -17,26 +17,26 @@ import { useState, useMemo } from "react";
 export default function History() {
   const [page, setPage] = useState(1);
   const [pageSize] = useState(20);
-  const [tenantId, setTenantId] = useState<string>("all");
+  const [cpf, setCpf] = useState<string>("");
   const [creditType, setCreditType] = useState<string>("all");
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
 
-  const { data: tenants } = trpc.tenants.list.useQuery();
+
 
   const filters = useMemo(() => ({
     page,
     pageSize,
-    ...(tenantId && tenantId !== "all" && { tenantId: parseInt(tenantId) }),
+    ...(cpf && { cpf }),
     ...(creditType && creditType !== "all" && { creditType: creditType as any }),
     ...(startDate && { startDate }),
     ...(endDate && { endDate }),
-  }), [page, pageSize, tenantId, creditType, startDate, endDate]);
+  }), [page, pageSize, cpf, creditType, startDate, endDate]);
 
   const { data, isLoading } = trpc.predictions.history.useQuery(filters);
 
   const handleClearFilters = () => {
-    setTenantId("all");
+    setCpf("");
     setCreditType("all");
     setStartDate("");
     setEndDate("");
@@ -83,23 +83,19 @@ export default function History() {
         <Card className="mb-6">
           <CardHeader>
             <CardTitle>Filtros</CardTitle>
-            <CardDescription>Refine sua busca por período, tenant ou tipo de crédito</CardDescription>
+            <CardDescription>Refine sua busca por CPF, período ou tipo de crédito</CardDescription>
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <div className="space-y-2">
-                <Label>Tenant</Label>
-                <Select value={tenantId} onValueChange={(value) => { setTenantId(value); setPage(1); }}>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Todos os tenants" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos</SelectItem>
-                    {tenants?.map((t) => (
-                      <SelectItem key={t.id} value={t.id.toString()}>{t.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Label>CPF do Cliente</Label>
+                <Input
+                  type="text"
+                  placeholder="000.000.000-00"
+                  value={cpf}
+                  onChange={(e) => { setCpf(e.target.value); setPage(1); }}
+                  maxLength={14}
+                />
               </div>
 
               <div className="space-y-2">
@@ -166,7 +162,7 @@ export default function History() {
                       <TableRow>
                         <TableHead>ID</TableHead>
                         <TableHead>Data/Hora</TableHead>
-                        <TableHead>Tenant</TableHead>
+                        <TableHead>CPF do Cliente</TableHead>
                         <TableHead>Tipo de Crédito</TableHead>
                         <TableHead>Classe de Risco</TableHead>
                         <TableHead>Probabilidade</TableHead>
@@ -175,7 +171,6 @@ export default function History() {
                     </TableHeader>
                     <TableBody>
                       {data.predictions.map((prediction) => {
-                        const tenant = tenants?.find((t) => t.id === prediction.tenantId);
                         return (
                           <TableRow 
                             key={prediction.id} 
@@ -188,7 +183,7 @@ export default function History() {
                             <TableCell className="text-sm">
                               {formatDate(prediction.createdAt)}
                             </TableCell>
-                            <TableCell>{tenant?.name || `ID: ${prediction.tenantId}`}</TableCell>
+                            <TableCell className="font-mono">{prediction.inputData ? JSON.parse(prediction.inputData).cpf || '-' : '-'}</TableCell>
                             <TableCell>
                               <Badge variant="outline">{prediction.creditType}</Badge>
                             </TableCell>
