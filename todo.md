@@ -187,3 +187,11 @@
 - [ ] Implementar histórico de retreinamentos
 - [ ] Adicionar rotas no App.tsx
 - [ ] Adicionar navegação no Dashboard
+
+## Correções Finais e Interfaces
+- [x] Corrigir Models.tsx (name → modelName, creditType → product, accuracy → metrics)
+- [x] Corrigir modelManagementService.ts (adicionar await na query linha 254)
+- [x] Criar ModelManagement.tsx com upload drag-and-drop
+- [x] Criar DriftMonitoring.tsx com gráficos PSI
+- [x] Adicionar rotas /models e /drift no App.tsx
+- [x] Adicionar navegação no Dashboard.tsx

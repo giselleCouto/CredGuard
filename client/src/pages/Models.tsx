@@ -51,11 +51,11 @@ export default function Models() {
                 <TableBody>
                   {models?.map((model) => (
                     <TableRow key={model.id}>
-                      <TableCell className="font-medium">{model.name}</TableCell>
-                      <TableCell><Badge variant="outline">{model.creditType}</Badge></TableCell>
+                      <TableCell className="font-medium">{model.modelName}</TableCell>
+                      <TableCell><Badge variant="outline">{model.product}</Badge></TableCell>
                       <TableCell>{model.version}</TableCell>
                       <TableCell><Badge variant={model.status === "production" ? "default" : "secondary"}>{model.status}</Badge></TableCell>
-                      <TableCell>{model.accuracy}%</TableCell>
+                      <TableCell>{JSON.parse(model.metrics || '{}').accuracy || 'N/A'}%</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

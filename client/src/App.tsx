@@ -11,6 +11,8 @@ import Dashboard from "./pages/Dashboard";
 import History from "./pages/History";
 import Profile from "./pages/Profile";
 import BatchUpload from "./pages/BatchUpload";
+import ModelManagement from "./pages/ModelManagement";
+import DriftMonitoring from "./pages/DriftMonitoring";
 
 function Router() {
   return (
@@ -22,6 +24,8 @@ function Router() {
       <Route path={"/bureau-config"} component={BureauConfig} />
       <Route path={"/bureau-metrics"} component={BureauMetrics} />
       <Route path={"/profile"} component={Profile} />
+      <Route path={" /models"} component={ModelManagement} />
+      <Route path={"/drift"} component={DriftMonitoring} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />
     </Switch>

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { trpc } from "@/lib/trpc";
 import { Link } from "wouter";
-import { Upload, History as HistoryIcon, Settings, BarChart3, FileText, Shield } from "lucide-react";
+import { Upload, History as HistoryIcon, Settings, BarChart3, FileText, Shield, Cpu, AlertTriangle } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
 import Logo from "@/components/Logo";
 import Breadcrumbs from "@/components/Breadcrumbs";
@@ -30,6 +30,8 @@ export default function Dashboard() {
             <nav className="flex gap-2">
               <Link href="/batch-upload"><Button variant="ghost">Upload em Lote</Button></Link>
               <Link href="/history"><Button variant="ghost">Histórico</Button></Link>
+              <Link href="/models"><Button variant="ghost">Modelos ML</Button></Link>
+              <Link href="/drift"><Button variant="ghost">Drift</Button></Link>
               <Link href="/bureau-config"><Button variant="ghost">Configurações</Button></Link>
               <Link href="/profile"><Button variant="ghost">Perfil</Button></Link>
               <ThemeToggle />

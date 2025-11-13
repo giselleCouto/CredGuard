@@ -244,22 +244,21 @@ export async function listModelVersions(tenantId: number, product?: "CARTAO" | "
   const db = await getDb();
   if (!db) throw new Error("Database not available");
 
-  let query = db
-    .select()
-    .from(modelVersions)
-    .where(eq(modelVersions.tenantId, tenantId))
-    .orderBy(desc(modelVersions.createdAt));
-
-  if (product) {
-    query = query.where(
-      and(
+  // Construir condição baseada em product
+  const whereCondition = product
+    ? and(
         eq(modelVersions.tenantId, tenantId),
         eq(modelVersions.product, product)
       )
-    );
-  }
+    : eq(modelVersions.tenantId, tenantId);
 
-  return await query;
+  const versions = await db
+    .select()
+    .from(modelVersions)
+    .where(whereCondition)
+    .orderBy(desc(modelVersions.createdAt));
+
+  return versions;
 }
 
 /**
