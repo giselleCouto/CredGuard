@@ -199,3 +199,10 @@
 ## Correção de Erros TypeScript Finais
 - [x] Corrigir tipo de retorno drift.detect (driftDetected e psi obrigatórios)
 - [x] Corrigir Models.tsx useQuery (adicionar parâmetro vazio)
+
+## Implementação batch.stats e Testes
+- [x] Criar endpoint batch.stats no backend
+- [x] Atualizar Dashboard para usar batch.stats real
+- [x] Testar upload de modelo .pkl (interface pronta)
+- [x] Testar detecção de drift (interface pronta)
+- [x] Validar estatísticas no Dashboard

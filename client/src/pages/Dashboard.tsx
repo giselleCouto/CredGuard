@@ -8,14 +8,7 @@ import Logo from "@/components/Logo";
 import Breadcrumbs from "@/components/Breadcrumbs";
 
 export default function Dashboard() {
-  // Simular stats por enquanto (TODO: criar endpoint batch.stats)
-  const batchStats = {
-    totalJobs: 0,
-    completedJobs: 0,
-    totalCustomers: 0,
-    totalScores: 0,
-    excludedCustomers: 0,
-  };
+  const { data: batchStats, isLoading: statsLoading } = trpc.batch.stats.useQuery();
   const { data: bureauConfig } = trpc.bureau.getConfig.useQuery();
 
   return (
@@ -140,7 +133,9 @@ export default function Dashboard() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{batchStats?.totalCustomers || 0}</div>
+              <div className="text-2xl font-bold">
+                {statsLoading ? "..." : (batchStats?.totalCustomers || 0)}
+              </div>
               <p className="text-xs text-muted-foreground">Total processado</p>
             </CardContent>
           </Card>
@@ -151,7 +146,9 @@ export default function Dashboard() {
               <BarChart3 className="h-4 w-4 text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{batchStats?.totalScores || 0}</div>
+              <div className="text-2xl font-bold">
+                {statsLoading ? "..." : (batchStats?.totalScores || 0)}
+              </div>
               <p className="text-xs text-muted-foreground">
                 {batchStats?.excludedCustomers || 0} excluídos
               </p>

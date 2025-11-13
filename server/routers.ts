@@ -475,6 +475,62 @@ export const appRouter = router({
           fileName: `scores_${input.jobId}.csv`,
         };
       }),
+
+    // Estatísticas do tenant
+    stats: protectedProcedure
+      .query(async ({ ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const tenantId = 1; // TODO: ctx.user.tenantId
+        
+        // Total de jobs
+        const [totalJobsResult] = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(batchJobs)
+          .where(eq(batchJobs.tenantId, tenantId));
+        
+        // Jobs completados
+        const [completedJobsResult] = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(batchJobs)
+          .where(and(
+            eq(batchJobs.tenantId, tenantId),
+            eq(batchJobs.status, 'completed')
+          ));
+        
+        // Total de clientes analisados
+        const [totalCustomersResult] = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(customerScores)
+          .where(eq(customerScores.tenantId, tenantId));
+        
+        // Total de scores gerados (sem exclusão)
+        const [totalScoresResult] = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(customerScores)
+          .where(and(
+            eq(customerScores.tenantId, tenantId),
+            sql`${customerScores.motivoExclusao} IS NULL`
+          ));
+        
+        // Clientes excluídos
+        const [excludedCustomersResult] = await database
+          .select({ count: sql<number>`count(*)` })
+          .from(customerScores)
+          .where(and(
+            eq(customerScores.tenantId, tenantId),
+            sql`${customerScores.motivoExclusao} IS NOT NULL`
+          ));
+        
+        return {
+          totalJobs: Number(totalJobsResult.count) || 0,
+          completedJobs: Number(completedJobsResult.count) || 0,
+          totalCustomers: Number(totalCustomersResult.count) || 0,
+          totalScores: Number(totalScoresResult.count) || 0,
+          excludedCustomers: Number(excludedCustomersResult.count) || 0,
+        };
+      }),
   }),
 
   profile: router({
