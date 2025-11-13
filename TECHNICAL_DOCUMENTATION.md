@@ -889,3 +889,438 @@ A plataforma possui monitoramento 24/7 com alertas automáticos para:
 **Versão do Documento**: 1.0  
 **Última Atualização**: Novembro 2025  
 **Próxima Revisão**: Fevereiro 2026
+
+
+---
+
+## 13. Gerenciamento de Modelos ML
+
+### 13.1 Upload de Modelos Customizados
+
+A plataforma CredGuard permite que clientes enterprise façam upload de seus próprios modelos ML retreinados, oferecendo flexibilidade para empresas que desejam manter controle total sobre seus algoritmos de credit scoring.
+
+#### 13.1.1 Endpoint de Upload
+
+**POST /api/v1/models/upload**
+
+Permite o upload de arquivos .pkl contendo modelos treinados com scikit-learn ou bibliotecas compatíveis.
+
+**Requisitos do Modelo:**
+
+| Requisito | Descrição |
+|-----------|-----------|
+| **Formato** | Arquivo .pkl serializado com pickle/joblib |
+| **Tamanho Máximo** | 500 MB |
+| **Método Obrigatório** | `predict(X)` que retorna probabilidades entre 0 e 1 |
+| **Features** | Deve aceitar as mesmas features extraídas pelo sistema (ver seção 4.2.1) |
+
+**Parâmetros da Requisição:**
+
+```json
+{
+  "modelName": "meu_modelo_cartao_v2",
+  "version": "2.1.0",
+  "product": "CARTAO",
+  "file": "<binary .pkl file>",
+  "metrics": {
+    "accuracy": 0.89,
+    "precision": 0.87,
+    "recall": 0.85,
+    "f1_score": 0.86,
+    "auc_roc": 0.92
+  },
+  "mlflowRunId": "abc123def456" // Opcional
+}
+```
+
+**Processo de Validação:**
+
+1. **Verificação de Formato**: Sistema valida que o arquivo é um pickle válido
+2. **Teste de Carregamento**: Modelo é carregado em memória para verificar integridade
+3. **Verificação de Interface**: Sistema confirma presença do método `predict()`
+4. **Teste de Predição**: Executa predição com dados sintéticos para validar output
+5. **Armazenamento**: Modelo aprovado é salvo no S3 com status "uploaded"
+
+**Resposta de Sucesso:**
+
+```json
+{
+  "success": true,
+  "modelVersionId": 42,
+  "status": "uploaded",
+  "s3Url": "https://s3.amazonaws.com/credguard-models/...",
+  "validation": {
+    "type": "RandomForestClassifier",
+    "size": 45678912
+  }
+}
+```
+
+#### 13.1.2 Integração com MLflow
+
+A plataforma oferece integração nativa com MLflow para rastreamento de experimentos e versionamento de modelos. Clientes podem registrar seus modelos no MLflow durante o treinamento e referenciar o `runId` no upload.
+
+**Benefícios da Integração MLflow:**
+
+- **Rastreabilidade**: Histórico completo de experimentos, hiperparâmetros e métricas
+- **Reprodutibilidade**: Capacidade de reproduzir exatamente qualquer versão de modelo
+- **Comparação**: Interface visual para comparar performance entre versões
+- **Governança**: Auditoria completa de quem treinou, quando e com quais dados
+
+### 13.2 Promoção de Modelos para Produção
+
+#### 13.2.1 Endpoint de Promoção
+
+**POST /api/v1/models/promote**
+
+Promove um modelo validado para ambiente de produção, substituindo o modelo atual.
+
+**Parâmetros da Requisição:**
+
+```json
+{
+  "modelVersionId": 42,
+  "product": "CARTAO",
+  "reason": "Drift detectado - PSI 0.28. Novo modelo com acurácia 2% superior."
+}
+```
+
+**Processo de Promoção:**
+
+1. **Backup Automático**: Modelo atual em produção é arquivado com timestamp
+2. **Download do S3**: Novo modelo é baixado do S3 para diretório de produção
+3. **Atualização de Status**: Modelo anterior marcado como "archived", novo como "production"
+4. **Registro de Deployment**: Criação de registro em `model_deployments` para auditoria
+5. **Reinicialização**: Serviço ML é reiniciado para carregar novo modelo (zero downtime)
+
+**Resposta de Sucesso:**
+
+```json
+{
+  "success": true,
+  "productionPath": "/opt/credguard/ml_models/fa_12.pkl",
+  "backupPath": "/opt/credguard/ml_models/archive/fa_12_1699876543.pkl",
+  "deploymentId": 15
+}
+```
+
+#### 13.2.2 Rollback de Modelos
+
+Em caso de problemas com modelo recém-promovido, é possível fazer rollback para versão anterior:
+
+**POST /api/v1/models/rollback**
+
+```json
+{
+  "product": "CARTAO",
+  "targetVersionId": 38 // Versão anterior
+}
+```
+
+### 13.3 Listagem e Histórico de Modelos
+
+**GET /api/v1/models/list?product=CARTAO**
+
+Retorna todas as versões de modelos do tenant, ordenadas por data de criação.
+
+**Resposta:**
+
+```json
+{
+  "models": [
+    {
+      "id": 42,
+      "modelName": "meu_modelo_cartao_v2",
+      "version": "2.1.0",
+      "product": "CARTAO",
+      "status": "production",
+      "metrics": {
+        "accuracy": 0.89,
+        "auc_roc": 0.92
+      },
+      "uploadedBy": "João Silva",
+      "promotedBy": "Maria Santos",
+      "promotedAt": "2025-11-10T14:30:00Z",
+      "createdAt": "2025-11-08T10:15:00Z"
+    },
+    {
+      "id": 38,
+      "modelName": "meu_modelo_cartao_v1",
+      "version": "2.0.0",
+      "product": "CARTAO",
+      "status": "archived",
+      ...
+    }
+  ]
+}
+```
+
+---
+
+## 14. Monitoramento de Drift
+
+### 14.1 O Que é Drift de Modelos
+
+Drift (ou degradação) de modelos ML ocorre quando a distribuição dos dados de entrada ou a relação entre features e target muda ao longo do tempo, causando queda na performance do modelo. No contexto de credit scoring, drift pode ser causado por:
+
+- **Mudanças Econômicas**: Recessão, inflação ou mudanças em taxas de juros alteram comportamento de pagamento
+- **Mudanças Demográficas**: Perfil dos clientes da empresa muda (ex: expansão para novas regiões)
+- **Mudanças de Produto**: Alterações em políticas de crédito ou condições de pagamento
+- **Sazonalidade**: Comportamento diferente em períodos específicos (fim de ano, férias)
+
+### 14.2 Detecção Automática de Drift
+
+A plataforma CredGuard implementa monitoramento contínuo de drift através de três métricas principais:
+
+#### 14.2.1 PSI (Population Stability Index)
+
+O PSI mede a mudança na distribuição dos scores entre dois períodos:
+
+**Fórmula:**
+
+```
+PSI = Σ (atual% - baseline%) × ln(atual% / baseline%)
+```
+
+**Interpretação:**
+
+| PSI | Status | Ação Recomendada |
+|-----|--------|------------------|
+| < 0.1 | Estável | Nenhuma ação necessária |
+| 0.1 - 0.25 | Atenção | Monitorar de perto |
+| > 0.25 | Crítico | Retreinamento urgente |
+
+#### 14.2.2 Feature Drift
+
+Monitora mudanças na distribuição de cada feature individual:
+
+- **Ticket Médio**: Aumento/diminuição significativa pode indicar mudança no perfil de clientes
+- **Taxa de Adimplência**: Mudanças podem refletir alterações econômicas
+- **Recência**: Alterações podem indicar mudanças em padrões de compra
+
+#### 14.2.3 Performance Drift
+
+Compara métricas de performance do modelo em produção vs baseline:
+
+- **Acurácia**: Queda > 5% indica degradação
+- **AUC-ROC**: Queda > 0.05 indica perda de capacidade discriminatória
+- **Calibração**: Scores não refletem mais probabilidades reais
+
+### 14.3 Alertas Automáticos
+
+Quando drift é detectado, o sistema:
+
+1. **Registra Evento**: Salva detalhes do drift em `drift_monitoring`
+2. **Classifica Severidade**: Define como "warning" ou "critical"
+3. **Notifica Stakeholders**: Envia e-mail para administradores do tenant
+4. **Cria Ticket**: Se cliente possui plano de sustentação, cria ticket automaticamente
+5. **Sugere Ação**: Recomenda retreinamento ou investigação adicional
+
+---
+
+## 15. Plano de Sustentação de Modelos
+
+### 15.1 Visão Geral
+
+O **Plano de Sustentação** é um serviço gerenciado oferecido pela equipe CredGuard para garantir que os modelos ML permaneçam performáticos ao longo do tempo. Clientes que contratam o plano delegam a responsabilidade de monitoramento, retreinamento e manutenção dos modelos para especialistas da CredGuard.
+
+### 15.2 Modalidades de Plano
+
+#### 15.2.1 Plano Basic
+
+| Característica | Descrição |
+|----------------|-----------|
+| **Preço** | R$ 2.500/mês |
+| **Retreinamentos Incluídos** | 1 por mês |
+| **SLA de Resposta** | 48 horas |
+| **Monitoramento** | Semanal |
+| **Suporte** | E-mail |
+
+**Ideal para:** Empresas com volume baixo a médio de transações e modelos estáveis.
+
+#### 15.2.2 Plano Premium
+
+| Característica | Descrição |
+|----------------|-----------|
+| **Preço** | R$ 7.500/mês |
+| **Retreinamentos Incluídos** | 3 por mês |
+| **SLA de Resposta** | 24 horas |
+| **Monitoramento** | Diário |
+| **Suporte** | E-mail + Chat |
+| **Extras** | Análise de features customizadas |
+
+**Ideal para:** Empresas com alto volume e necessidade de ajustes frequentes.
+
+#### 15.2.3 Plano Enterprise
+
+| Característica | Descrição |
+|----------------|-----------|
+| **Preço** | R$ 15.000/mês |
+| **Retreinamentos Incluídos** | Ilimitados |
+| **SLA de Resposta** | 4 horas |
+| **Monitoramento** | Tempo real |
+| **Suporte** | Dedicado (Slack/WhatsApp) |
+| **Extras** | Cientista de dados dedicado, customizações de modelo |
+
+**Ideal para:** Grandes empresas com requisitos críticos de performance.
+
+### 15.3 Workflow de Sustentação
+
+#### Etapa 1: Detecção de Drift
+
+Sistema detecta PSI > 0.25 ou queda de acurácia > 5%.
+
+#### Etapa 2: Criação Automática de Ticket
+
+Ticket é criado em `sustentation_tickets` com:
+- **Tipo**: "drift_alert"
+- **Status**: "pending"
+- **Prioridade**: Baseada em severidade do drift
+- **Descrição**: Detalhes técnicos do drift detectado
+
+#### Etapa 3: Análise pela Equipe CredGuard
+
+Analista da CredGuard:
+1. Revisa métricas de drift
+2. Investiga causas raízes (mudanças econômicas, sazonalidade, etc)
+3. Define se retreinamento é necessário
+4. Atualiza ticket para status "analyzing"
+
+#### Etapa 4: Solicitação de Dados
+
+Se retreinamento for necessário:
+1. Sistema envia e-mail para cliente solicitando dados rotulados recentes
+2. Cliente faz upload de CSV com outcomes reais (inadimplência sim/não)
+3. Ticket atualizado para "collecting_data"
+
+#### Etapa 5: Retreinamento
+
+Cientista de dados CredGuard:
+1. Combina dados históricos com novos dados rotulados
+2. Treina novo modelo com hiperparâmetros otimizados
+3. Registra experimento no MLflow
+4. Ticket atualizado para "retraining"
+
+#### Etapa 6: Validação
+
+Modelo retreinado é validado:
+1. Métricas comparadas com baseline
+2. Testes A/B em subset de dados
+3. Aprovação do cliente (se necessário)
+4. Ticket atualizado para "validating"
+
+#### Etapa 7: Deploy
+
+Modelo aprovado é promovido para produção:
+1. Upload via endpoint `/api/v1/models/upload`
+2. Promoção via endpoint `/api/v1/models/promote`
+3. Monitoramento pós-deploy por 7 dias
+4. Ticket fechado com status "completed"
+
+### 15.4 Endpoints do Plano de Sustentação
+
+#### 15.4.1 Contratar Plano
+
+**POST /api/v1/sustentation/subscribe**
+
+```json
+{
+  "planType": "premium"
+}
+```
+
+#### 15.4.2 Solicitar Suporte Manual
+
+**POST /api/v1/sustentation/request-support**
+
+```json
+{
+  "product": "CARTAO",
+  "description": "Notei queda na performance do modelo nos últimos 15 dias",
+  "priority": "high"
+}
+```
+
+#### 15.4.3 Listar Tickets
+
+**GET /api/v1/sustentation/tickets?status=pending**
+
+Retorna tickets de sustentação do tenant.
+
+### 15.5 Benefícios do Plano
+
+- **Tranquilidade**: Equipe especializada cuida da manutenção dos modelos
+- **Performance Garantida**: SLA de resposta e retreinamento proativo
+- **Expertise**: Acesso a cientistas de dados experientes em credit scoring
+- **Economia de Tempo**: Empresa foca no core business, não em ML ops
+- **Compliance**: Documentação completa de retreinamentos para auditoria
+
+---
+
+## 16. Runbooks Operacionais
+
+A plataforma CredGuard inclui quatro runbooks detalhados para operação e manutenção:
+
+### 16.1 RUNBOOK_OPERATIONS.md
+
+Procedimentos diários, semanais e mensais para manter a plataforma saudável:
+
+- **Checklist Matinal**: Verificação de serviços, logs, métricas e jobs
+- **Monitoramento de Drift**: Processo diário de verificação de PSI
+- **Backup e Recuperação**: Validação de backups e testes de restauração
+- **Limpeza de Dados**: Arquivamento de dados antigos e otimização de tabelas
+
+### 16.2 RUNBOOK_TROUBLESHOOTING.md
+
+Soluções para problemas comuns:
+
+- **Backend Não Responde**: Diagnóstico e reinicialização de serviços
+- **Jobs Travados**: Identificação e reprocessamento de jobs
+- **Modelos ML Não Carregam**: Restauração de modelos do backup
+- **Drift Detectado**: Workflow de resposta a alertas de drift
+- **Banco de Dados Lento**: Otimização de queries e índices
+
+### 16.3 RUNBOOK_MAINTENANCE.md
+
+Manutenção preventiva e corretiva:
+
+- **Manutenção Mensal**: Limpeza de dados, atualização de modelos
+- **Manutenção Trimestral**: Retreinamento preventivo, auditoria de segurança
+- **Política de Backup**: Frequência, retenção e testes de restauração
+
+### 16.4 Acesso aos Runbooks
+
+Todos os runbooks estão disponíveis no repositório do projeto:
+
+```
+/home/ubuntu/behavior-kab-saas-web/RUNBOOK_*.md
+```
+
+---
+
+## 17. Roadmap Futuro
+
+### 17.1 Curto Prazo (3-6 meses)
+
+- **API de Predição em Tempo Real**: Endpoint para scoring individual (não apenas batch)
+- **Dashboard de Monitoramento**: Interface visual para acompanhar drift e performance
+- **Explicabilidade de Modelos**: SHAP values para entender decisões do modelo
+- **Integração com Mais Bureaus**: Quod, SPC Brasil
+
+### 17.2 Médio Prazo (6-12 meses)
+
+- **AutoML**: Retreinamento automático quando drift for detectado
+- **Modelos Ensemble**: Combinação de múltiplos modelos para maior acurácia
+- **Análise de Fraude**: Detecção de padrões suspeitos além de inadimplência
+- **Mobile App**: Aplicativo para gestores acompanharem métricas em tempo real
+
+### 17.3 Longo Prazo (12+ meses)
+
+- **Deep Learning**: Modelos neurais para capturar padrões complexos
+- **Federated Learning**: Treinamento colaborativo entre clientes sem compartilhar dados
+- **Mercado de Modelos**: Marketplace onde clientes podem compartilhar/vender modelos
+- **Expansão Internacional**: Suporte a bureaus de outros países
+
+---
+
+**Fim da Documentação Técnica - CredGuard v1.0**

@@ -186,3 +186,104 @@ export const bureauCache = mysqlTable("bureau_cache", {
 
 export type BureauCache = typeof bureauCache.$inferSelect;
 export type InsertBureauCache = typeof bureauCache.$inferInsert;
+
+/**
+ * Versões de modelos ML (MLflow integration)
+ */
+export const modelVersions = mysqlTable("model_versions", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  modelName: varchar("model_name", { length: 255 }).notNull(),
+  version: varchar("version", { length: 50 }).notNull(),
+  product: mysqlEnum("product", ["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).notNull(),
+  filePath: text("file_path").notNull(), // Caminho no S3 ou filesystem
+  fileSize: int("file_size").notNull(), // Tamanho em bytes
+  mlflowRunId: varchar("mlflow_run_id", { length: 255 }),
+  metrics: text("metrics"), // JSON com métricas (accuracy, precision, recall, etc)
+  status: mysqlEnum("status", ["uploaded", "validated", "production", "archived"]).default("uploaded").notNull(),
+  uploadedBy: int("uploaded_by").notNull().references(() => users.id),
+  promotedBy: int("promoted_by").references(() => users.id),
+  promotedAt: timestamp("promoted_at"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+export type ModelVersion = typeof modelVersions.$inferSelect;
+export type InsertModelVersion = typeof modelVersions.$inferInsert;
+
+/**
+ * Histórico de deploys de modelos
+ */
+export const modelDeployments = mysqlTable("model_deployments", {
+  id: int("id").autoincrement().primaryKey(),
+  modelVersionId: int("model_version_id").notNull().references(() => modelVersions.id),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  product: mysqlEnum("product", ["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).notNull(),
+  reason: text("reason").notNull(), // Motivo do deploy (drift, performance, etc)
+  deployedBy: int("deployed_by").notNull().references(() => users.id),
+  deployedAt: timestamp("deployed_at").defaultNow().notNull(),
+  rollbackedAt: timestamp("rollbacked_at"),
+});
+
+export type ModelDeployment = typeof modelDeployments.$inferSelect;
+export type InsertModelDeployment = typeof modelDeployments.$inferInsert;
+
+/**
+ * Monitoramento de drift detalhado
+ */
+export const driftMonitoring = mysqlTable("drift_monitoring", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  product: mysqlEnum("product", ["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).notNull(),
+  modelVersionId: int("model_version_id").notNull().references(() => modelVersions.id),
+  psi: decimal("psi", { precision: 5, scale: 4 }).notNull(), // Population Stability Index
+  featureDrift: text("feature_drift"), // JSON com drift por feature
+  performanceDrift: text("performance_drift"), // JSON com métricas de performance
+  status: mysqlEnum("status", ["stable", "warning", "critical"]).notNull(),
+  alertSent: boolean("alert_sent").default(false).notNull(),
+  checkedAt: timestamp("checked_at").defaultNow().notNull(),
+});
+
+export type DriftMonitoring = typeof driftMonitoring.$inferSelect;
+export type InsertDriftMonitoring = typeof driftMonitoring.$inferInsert;
+
+/**
+ * Planos de sustentação de modelos
+ */
+export const sustentationPlans = mysqlTable("sustentation_plans", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().unique().references(() => tenants.id),
+  planType: mysqlEnum("plan_type", ["basic", "premium", "enterprise"]).notNull(),
+  monthlyPrice: decimal("monthly_price", { precision: 10, scale: 2 }).notNull(),
+  status: mysqlEnum("status", ["active", "suspended", "cancelled"]).default("active").notNull(),
+  includedRetrainings: int("included_retrainings").notNull(), // Retreinamentos incluídos por mês
+  responseTimeSLA: int("response_time_sla").notNull(), // SLA em horas
+  subscribedAt: timestamp("subscribed_at").defaultNow().notNull(),
+  cancelledAt: timestamp("cancelled_at"),
+});
+
+export type SustentationPlan = typeof sustentationPlans.$inferSelect;
+export type InsertSustentationPlan = typeof sustentationPlans.$inferInsert;
+
+/**
+ * Tickets de sustentação (solicitações de retreinamento)
+ */
+export const sustentationTickets = mysqlTable("sustentation_tickets", {
+  id: int("id").autoincrement().primaryKey(),
+  tenantId: int("tenant_id").notNull().references(() => tenants.id),
+  planId: int("plan_id").notNull().references(() => sustentationPlans.id),
+  product: mysqlEnum("product", ["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).notNull(),
+  driftMonitoringId: int("drift_monitoring_id").references(() => driftMonitoring.id),
+  type: mysqlEnum("type", ["drift_alert", "manual_request", "scheduled"]).notNull(),
+  status: mysqlEnum("status", ["pending", "analyzing", "collecting_data", "retraining", "validating", "deploying", "completed", "cancelled"]).default("pending").notNull(),
+  priority: mysqlEnum("priority", ["low", "medium", "high", "critical"]).default("medium").notNull(),
+  description: text("description").notNull(),
+  assignedTo: int("assigned_to").references(() => users.id), // Analista da CredGuard
+  resolution: text("resolution"),
+  newModelVersionId: int("new_model_version_id").references(() => modelVersions.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().onUpdateNow().notNull(),
+  completedAt: timestamp("completed_at"),
+});
+
+export type SustentationTicket = typeof sustentationTickets.$inferSelect;
+export type InsertSustentationTicket = typeof sustentationTickets.$inferInsert;

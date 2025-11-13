@@ -131,3 +131,32 @@
 - [x] Documentar processo de feature extraction
 - [x] Atualizar seção de arquitetura com serviço Python
 - [x] Manter segredos proprietários protegidos
+
+## Runbooks Operacionais
+- [x] Criar RUNBOOK_OPERATIONS.md (guia de operações diárias)
+- [x] Criar RUNBOOK_TROUBLESHOOTING.md (solução de problemas)
+- [x] Criar RUNBOOK_MAINTENANCE.md (manutenção preventiva)
+
+## Sistema de Upload/Promoção de Modelos ML
+- [x] Criar schema model_versions no banco de dados
+- [x] Criar schema model_deployments para histórico de deploys
+- [x] Implementar serviço de validação de modelos .pkl (modelManagementService.ts)
+- [x] Documentar endpoints POST /api/v1/models/upload
+- [x] Documentar endpoint POST /api/v1/models/promote
+- [x] Documentar endpoint GET /api/v1/models/list
+- [x] Integrar com MLflow para tracking (documentado)
+
+## Monitoramento de Drift
+- [x] Criar schema drift_monitoring no banco de dados
+- [x] Implementar cálculo de PSI (Population Stability Index)
+- [x] Documentar detecção de drift de features
+- [x] Documentar detecção de drift de performance
+- [x] Documentar alertas automáticos de drift
+
+## Plano de Sustentação de Modelos
+- [x] Criar schema sustentation_plans no banco de dados
+- [x] Criar schema sustentation_tickets para tracking de solicitações
+- [x] Documentar endpoint POST /sustentation/subscribe
+- [x] Documentar endpoint POST /sustentation/request-support
+- [x] Documentar workflow de sustentação (análise → retreino → validação → deploy)
+- [x] Documentar modalidades de plano (Basic, Premium, Enterprise)
