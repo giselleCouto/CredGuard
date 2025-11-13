@@ -248,3 +248,13 @@
 - [x] Instalar react-dropzone se ausente
 - [x] Ajustar Dockerfile se necessário (não foi necessário)
 - [ ] Publicar com sucesso
+
+## Dados Sintéticos para Testes
+- [x] Criar script seed-db.mjs
+- [x] Popular batch_jobs com diferentes status
+- [x] Popular customer_data e customer_scores
+- [x] Popular model_versions e model_deployments
+- [x] Popular drift_monitoring
+- [x] Popular bureau_cache e tenant_bureau_config
+- [x] Popular sustentation_plans e tickets
+- [x] Executar seed e validar
