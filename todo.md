@@ -217,3 +217,11 @@
 - [x] Atualizar profile endpoint (me)
 - [x] Aplicar migração do banco de dados (0007_nostalgic_scarlet_witch.sql)
 - [x] Testar isolamento de dados (0 erros TypeScript)
+
+## Correção de Docker Build para Publicação
+- [x] Verificar Dockerfile existente (estava em deployment/docker/)
+- [x] Identificar erros de build (Dockerfile não estava na raiz)
+- [x] Corrigir Dockerfile (criado na raiz com suporte Python ML)
+- [x] Criar .dockerignore otimizado
+- [x] Testar build localmente (deps stage OK)
+- [ ] Publicar com sucesso

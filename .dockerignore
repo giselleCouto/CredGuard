@@ -1,0 +1,45 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build artifacts
+dist
+*.log
+*.tsbuildinfo
+
+# Development files
+.git
+.github
+.vscode
+.idea
+*.md
+!README.md
+
+# Test files
+**/*.test.ts
+**/*.test.tsx
+**/*.spec.ts
+**/*.spec.tsx
+__tests__
+coverage
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Deployment files (not needed in image)
+deployment
+AWS_MIGRATION_GUIDE.md
+RUNBOOK_*.md
+NEXT_STEPS.md
+IMPLEMENTATION_STATUS.md
+
+# Temporary files
+tmp
+temp
+*.tmp
