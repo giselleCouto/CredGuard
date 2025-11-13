@@ -68,7 +68,8 @@ A plataforma CredGuard foi construída utilizando tecnologias modernas e escalá
 | **ORM** | Drizzle ORM | Latest | ORM TypeScript-first com excelente performance e type safety |
 | **Autenticação** | Manus OAuth | - | Sistema OAuth integrado para autenticação segura de usuários |
 | **Storage** | AWS S3 | - | Armazenamento de objetos escalável para arquivos CSV e resultados |
-| **Machine Learning** | Modelos Proprietários | - | Modelos pré-treinados para scoring de crédito (detalhes confidenciais) |
+| **Machine Learning** | Python 3.11 + scikit-learn | 1.3.2 | Serviço de predição com modelos pré-treinados (fa_8, fa_11, fa_12, fa_15) |
+| **Data Processing** | pandas + numpy | 2.1.4 / 1.26.2 | Processamento e transformação de dados para ML |
 
 ### 2.2 Arquitetura Multitenant
 
@@ -111,8 +112,13 @@ Esta abordagem garante que:
 ┌─────────────────────────────────────────────────────────────┐
 │                   CAMADA DE SERVIÇOS                         │
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
-│  │Score Service │  │Bureau Service│  │ File Parser  │      │
+│  │ ML Service   │  │Bureau Service│  │ File Parser  │      │
+│  │  (Python)    │  │              │  │              │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
+│  ┌──────────────┐  ┌──────────────┐                         │
+│  │ML Prediction │  │Feature       │                         │
+│  │Wrapper (TS)  │  │Extraction    │                         │
+│  └──────────────┘  └──────────────┘                         │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -120,6 +126,12 @@ Esta abordagem garante que:
 │  ┌──────────────┐  ┌──────────────┐  ┌──────────────┐      │
 │  │  MySQL/TiDB  │  │   AWS S3     │  │ Bureau Cache │      │
 │  └──────────────┘  └──────────────┘  └──────────────┘      │
+│  ┌──────────────┐                                            │
+│  │ ML Models    │                                            │
+│  │ (.pkl files) │                                            │
+│  │ fa_8, fa_11, │                                            │
+│  │ fa_12, fa_15 │                                            │
+│  └──────────────┘                                            │
 └─────────────────────────────────────────────────────────────┘
                             ↓
 ┌─────────────────────────────────────────────────────────────┐
@@ -337,29 +349,51 @@ O core da plataforma CredGuard é o sistema de geração de scores de probabilid
 
 #### 4.2.1 Modelos de Machine Learning
 
-A plataforma utiliza **modelos proprietários de classificação binária** treinados especificamente para cada tipo de produto financeiro. Os detalhes técnicos dos modelos, incluindo algoritmos, features engineering e hiperparâmetros, são confidenciais e não serão divulgados neste documento.
+A plataforma utiliza **modelos proprietários de classificação binária** treinados especificamente para cada tipo de produto financeiro. Os modelos são armazenados em formato serializado (.pkl) e carregados em memória durante a inicialização do serviço de predição. Os detalhes técnicos dos algoritmos, features engineering e hiperparâmetros são confidenciais e não serão divulgados neste documento.
 
 **Características Gerais dos Modelos:**
 
-- **Tipo**: Modelos de classificação binária (inadimplente / adimplente)
-- **Saída**: Probabilidade de inadimplência entre 0 e 1 (0% a 100%)
-- **Especialização**: Modelos distintos para CARTÃO, CARNÊ e EMPRÉSTIMO PESSOAL
-- **Treinamento**: Baseado em histórico transacional e comportamental de milhões de clientes
-- **Atualização**: Modelos são retreinados periodicamente com novos dados (frequência confidencial)
+| Característica | Descrição |
+|------------------|-------------|
+| **Tipo** | Modelos de classificação binária (inadimplente / adimplente) |
+| **Saída** | Probabilidade de inadimplência entre 0 e 1 (0% a 100%) |
+| **Especialização** | Modelos distintos para CARTÃO (fa_12), CARNÊ (fa_11) e EMPRÉSTIMO PESSOAL (fa_15) |
+| **Formato** | Arquivos .pkl serializados com pickle/joblib |
+| **Tamanho Total** | 103 MB (fa_8: 19MB, fa_11: 18MB, fa_12: 22MB, fa_15: 44MB) |
+| **Treinamento** | Baseado em histórico transacional e comportamental de clientes reais |
+| **Atualização** | Modelos são retreinados periodicamente com novos dados (frequência confidencial) |
 
-**Features Utilizadas:**
+**Arquitetura de Modelos:**
 
-Os modelos consideram múltiplas variáveis extraídas do histórico do cliente, incluindo:
+A plataforma implementa quatro variantes de modelos (FA-8, FA-11, FA-12, FA-15), cada uma otimizada para diferentes conjuntos de features. A seleção do modelo adequado é feita automaticamente baseada no tipo de produto:
 
-- Tempo de relacionamento (diferença entre primeira e última compra)
-- Frequência de compras (total de transações / meses de relacionamento)
-- Ticket médio (valor total / total de compras)
-- Taxa de adimplência (pagamentos em dia / total de compras)
-- Severidade de atrasos (maior atraso registrado)
-- Recência (dias desde a última compra)
-- Valor total transacionado
+- **FA-8** (8 features): Modelo base com features essenciais
+- **FA-11** (11 features): Modelo otimizado para produtos de carnê
+- **FA-12** (12 features): Modelo principal para cartão de crédito
+- **FA-15** (15 features): Modelo avançado para empréstimo pessoal
 
-**Nota Importante**: A lista acima não é exaustiva e serve apenas para ilustração. O conjunto completo de features e suas transformações são segredos industriais da solução.
+**Features Extraídas:**
+
+O serviço de predição (`ml_service.py`) extrai automaticamente as seguintes features do histórico do cliente:
+
+| Feature | Descrição | Cálculo |
+|---------|-------------|----------|
+| `meses_relacionamento` | Tempo de relacionamento em meses | (data_ultima_compra - data_primeira_compra) / 30 |
+| `recencia_dias` | Dias desde a última compra | (data_atual - data_ultima_compra) |
+| `total_compras` | Quantidade de compras realizadas | Soma de transações |
+| `valor_total` | Valor total transacionado | Soma de valores de compras |
+| `ticket_medio` | Valor médio por compra | valor_total / total_compras |
+| `taxa_adimplencia` | Percentual de pagamentos em dia | pagamentos_em_dia / total_pagamentos |
+| `maior_atraso` | Maior atraso registrado em dias | Máximo de dias_atraso |
+| `frequencia_compras` | Compras por mês | total_compras / meses_relacionamento |
+| `total_pagamentos_em_dia` | Quantidade de pagamentos no prazo | Contagem de pagamentos sem atraso |
+| `total_atrasos` | Quantidade de pagamentos em atraso | Contagem de pagamentos com atraso |
+
+**Normalização de Features:**
+
+As features numéricas são normalizadas utilizando um **StandardScaler** pré-treinado (`scaler_num.pkl`, 1.5KB) antes de serem fornecidas aos modelos. Este processo garante que todas as variáveis tenham a mesma escala, melhorando a performance e estabilidade das predições.
+
+**Nota Importante**: A lista de features acima não é exaustiva. O conjunto completo de features, suas transformações, interações e os algoritmos de ML utilizados são segredos industriais da solução CredGuard.
 
 #### 4.2.2 Faixas de Score
 

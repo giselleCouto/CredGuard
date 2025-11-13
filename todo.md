@@ -124,3 +124,10 @@
 - [x] Adicionar dependências Python (scikit-learn, pandas, numpy, joblib)
 - [x] Documentar uso dos modelos no TECHNICAL_DOCUMENTATION.md
 - [x] Subir código completo para GitHub (gisellebhs/behavior-kab-saas)
+
+## Atualização de Documentação Técnica
+- [x] Atualizar TECHNICAL_DOCUMENTATION.md com informações reais dos modelos ML
+- [x] Incluir detalhes dos modelos fa_8, fa_11, fa_12, fa_15
+- [x] Documentar processo de feature extraction
+- [x] Atualizar seção de arquitetura com serviço Python
+- [x] Manter segredos proprietários protegidos
