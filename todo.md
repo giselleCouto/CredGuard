@@ -264,3 +264,8 @@
 - [x] Verificar links no Dashboard
 - [x] Corrigir rotas de Model Management e Drift Monitoring
 - [x] Testar navegação completa
+
+## Correção TypeError PSI em Drift Monitoring
+- [x] Localizar uso de psi.toFixed() em DriftMonitoring.tsx
+- [x] Converter PSI de string para número
+- [x] Testar página /drift

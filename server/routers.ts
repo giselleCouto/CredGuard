@@ -962,13 +962,23 @@ export const appRouter = router({
           .select()
           .from(driftMonitoring)
           .where(and(
-            eq(driftMonitoring.tenantId, 1), // TODO: ctx.user.tenantId
-            eq(driftMonitoring.alertSent, false),
+            eq(driftMonitoring.tenantId, ctx.user.tenantId),
             sql`${driftMonitoring.status} IN ('warning', 'critical')`
           ))
           .orderBy(desc(driftMonitoring.checkedAt));
         
-        return alerts;
+        // Mapear para formato esperado pelo frontend
+        return alerts.map(alert => ({
+          id: alert.id,
+          product: alert.product,
+          psi: alert.psi,
+          status: alert.status,
+          severity: alert.status === 'critical' ? 'critical' : 'warning',
+          message: alert.status === 'critical' 
+            ? `Drift crítico detectado (PSI: ${alert.psi})` 
+            : `Drift moderado detectado (PSI: ${alert.psi})`,
+          detectedAt: alert.checkedAt,
+        }));
       }),
   }),
 

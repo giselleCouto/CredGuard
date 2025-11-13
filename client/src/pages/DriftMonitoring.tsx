@@ -24,9 +24,9 @@ export default function DriftMonitoring() {
   const detectMutation = trpc.drift.detect.useMutation({
     onSuccess: (result) => {
       if (result.driftDetected) {
-        toast.warning(`Drift detectado! PSI: ${result.psi.toFixed(4)}`);
+        toast.warning(`Drift detectado! PSI: ${Number(result.psi).toFixed(4)}`);
       } else {
-        toast.success(`Nenhum drift detectado. PSI: ${result.psi.toFixed(4)}`);
+        toast.success(`Nenhum drift detectado. PSI: ${Number(result.psi).toFixed(4)}`);
       }
       refetchHistory();
       refetchAlerts();
@@ -43,7 +43,7 @@ export default function DriftMonitoring() {
   // Preparar dados para o gráfico
   const chartData = historyData?.map((item: any) => ({
     date: new Date(item.detectedAt).toLocaleDateString("pt-BR", { month: "short", day: "numeric" }),
-    psi: item.psi,
+    psi: Number(item.psi),
     threshold: 0.1, // Linha de threshold
   })) || [];
 
@@ -100,7 +100,7 @@ export default function DriftMonitoring() {
                     <div>
                       <p className="font-medium">{alert.message}</p>
                       <p className="text-sm text-muted-foreground">
-                        PSI: {alert.psi.toFixed(4)} | Detectado em {new Date(alert.detectedAt).toLocaleString("pt-BR")}
+                        PSI: {Number(alert.psi).toFixed(4)} | Detectado em {new Date(alert.detectedAt).toLocaleString("pt-BR")}
                       </p>
                     </div>
                   </div>
@@ -193,8 +193,8 @@ export default function DriftMonitoring() {
                       {new Date(item.detectedAt).toLocaleString("pt-BR")}
                     </TableCell>
                     <TableCell>
-                      <span className={item.psi > 0.1 ? "text-orange-500 font-semibold" : ""}>
-                        {item.psi.toFixed(4)}
+                      <span className={Number(item.psi) > 0.1 ? "text-orange-500 font-semibold" : ""}>
+                        {Number(item.psi).toFixed(4)}
                       </span>
                     </TableCell>
                     <TableCell>
