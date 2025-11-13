@@ -236,3 +236,9 @@
 ## Correção Final Dockerfile
 - [x] Remover cópia de index.html da raiz (arquivo está em client/)
 - [ ] Publicar com sucesso
+
+## Investigação handleInvalidResolvedId
+- [x] Verificar vite.config.ts
+- [x] Procurar imports problemáticos
+- [x] Ajustar configuração para produção
+- [ ] Publicar com sucesso
