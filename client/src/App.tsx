@@ -24,7 +24,7 @@ function Router() {
       <Route path={"/bureau-config"} component={BureauConfig} />
       <Route path={"/bureau-metrics"} component={BureauMetrics} />
       <Route path={"/profile"} component={Profile} />
-      <Route path={" /models"} component={ModelManagement} />
+      <Route path={"/models"} component={ModelManagement} />
       <Route path={"/drift"} component={DriftMonitoring} />
       <Route path={"/404"} component={NotFound} />
       <Route component={NotFound} />

@@ -258,3 +258,9 @@
 - [x] Popular bureau_cache e tenant_bureau_config
 - [x] Popular sustentation_plans e tickets
 - [x] Executar seed e validar
+
+## Correção de Rotas 404
+- [x] Verificar rotas no App.tsx
+- [x] Verificar links no Dashboard
+- [x] Corrigir rotas de Model Management e Drift Monitoring
+- [x] Testar navegação completa
