@@ -160,3 +160,30 @@
 - [x] Documentar endpoint POST /sustentation/request-support
 - [x] Documentar workflow de sustentação (análise → retreino → validação → deploy)
 - [x] Documentar modalidades de plano (Basic, Premium, Enterprise)
+
+## Implementação de Endpoints e Interfaces
+- [x] Criar router `models` no server/routers.ts
+- [x] Implementar models.upload (POST com base64)
+- [x] Implementar models.promote
+- [x] Implementar models.list
+- [x] Implementar models.getProductionModel
+- [x] Criar router `sustentation` no server/routers.ts
+- [x] Implementar sustentation.subscribe
+- [x] Implementar sustentation.requestSupport
+- [x] Implementar sustentation.listTickets
+- [x] Criar router `drift` no server/routers.ts
+- [x] Implementar drift.detect
+- [x] Implementar drift.history
+- [x] Implementar drift.activeAlerts
+- [ ] Corrigir erros TypeScript em Models.tsx (name vs modelName)
+- [ ] Corrigir erro de query builder em modelManagementService.ts
+- [ ] Criar página ModelManagement.tsx
+- [ ] Implementar drag-and-drop para upload de .pkl
+- [ ] Implementar visualização de versões de modelos
+- [ ] Implementar botão de promoção para produção
+- [ ] Criar página DriftMonitoring.tsx
+- [ ] Implementar gráfico de PSI ao longo do tempo
+- [ ] Implementar lista de alertas ativos
+- [ ] Implementar histórico de retreinamentos
+- [ ] Adicionar rotas no App.tsx
+- [ ] Adicionar navegação no Dashboard

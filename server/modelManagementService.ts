@@ -329,32 +329,43 @@ export async function detectDrift(
   }
 
   // Buscar scores dos últimos 30 dias (baseline)
-  const baselineScores = await db.execute(
-    `SELECT scoreProbInadimplencia FROM customer_scores 
-     WHERE tenantId = ? AND produto = ? 
-     AND dataProcessamento >= DATE_SUB(NOW(), INTERVAL 60 DAY)
-     AND dataProcessamento < DATE_SUB(NOW(), INTERVAL 30 DAY)
-     AND motivoExclusao IS NULL
-     LIMIT 1000`,
-    [tenantId, product]
-  );
+  // Buscar scores usando query builder ao invés de raw SQL
+  const { customerScores } = await import("../drizzle/schema");
+  const { and, eq, gt, lt, isNull } = await import("drizzle-orm");
+  
+  const sixtyDaysAgo = new Date(Date.now() - 60 * 24 * 60 * 60 * 1000);
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+  
+  const baselineScores = await db
+    .select({ score: customerScores.scoreProbInadimplencia })
+    .from(customerScores)
+    .where(and(
+      eq(customerScores.tenantId, tenantId),
+      eq(customerScores.produto, product),
+      gt(customerScores.dataProcessamento, sixtyDaysAgo),
+      lt(customerScores.dataProcessamento, thirtyDaysAgo),
+      isNull(customerScores.motivoExclusao)
+    ))
+    .limit(1000);
 
-  // Buscar scores dos últimos 7 dias (current)
-  const currentScores = await db.execute(
-    `SELECT scoreProbInadimplencia FROM customer_scores 
-     WHERE tenantId = ? AND produto = ? 
-     AND dataProcessamento >= DATE_SUB(NOW(), INTERVAL 7 DAY)
-     AND motivoExclusao IS NULL
-     LIMIT 1000`,
-    [tenantId, product]
-  );
+  const currentScores = await db
+    .select({ score: customerScores.scoreProbInadimplencia })
+    .from(customerScores)
+    .where(and(
+      eq(customerScores.tenantId, tenantId),
+      eq(customerScores.produto, product),
+      gt(customerScores.dataProcessamento, sevenDaysAgo),
+      isNull(customerScores.motivoExclusao)
+    ))
+    .limit(1000);
 
-  if (baselineScores.rows.length < 100 || currentScores.rows.length < 100) {
+  if (baselineScores.length < 100 || currentScores.length < 100) {
     return { drift: false, message: "Dados insuficientes para calcular drift" };
   }
 
-  const baselineValues = baselineScores.rows.map((r: any) => parseFloat(r.scoreProbInadimplencia));
-  const currentValues = currentScores.rows.map((r: any) => parseFloat(r.scoreProbInadimplencia));
+  const baselineValues = baselineScores.map((r) => parseFloat(r.score || '0'));
+  const currentValues = currentScores.map((r) => parseFloat(r.score || '0'));
 
   const psi = await calculatePSI(tenantId, product, baselineValues, currentValues);
 

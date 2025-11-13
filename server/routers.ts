@@ -53,49 +53,12 @@ export const appRouter = router({
       }),
   }),
 
-  // Models router
-  models: router({
-    list: publicProcedure.query(async () => {
-      return await db.getAllModels();
-    }),
-    
-    listByTenant: publicProcedure
-      .input(z.object({ tenantId: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getModelsByTenant(input.tenantId);
-      }),
-    
-    getById: publicProcedure
-      .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getModelById(input.id);
-      }),
-    
-    create: protectedProcedure
-      .input(z.object({
-        tenantId: z.number(),
-        name: z.string().min(1),
-        creditType: z.enum(["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE", "FINANCIAMENTO"]),
-        version: z.string().min(1),
-        status: z.enum(["development", "staging", "production", "deprecated"]).default("development"),
-        accuracy: z.number().min(0).max(100),
-      }))
-      .mutation(async ({ input }) => {
-        return await db.createModel({
-          tenantId: input.tenantId,
-          name: input.name,
-          creditType: input.creditType,
-          version: input.version,
-          status: input.status,
-          accuracy: Math.round(input.accuracy), // Armazenar como inteiro
-        });
-      }),
-  }),
-
-  // Predictions router
+  // Routers antigos removidos (models, predictions, drift) - agora usamos os novos
+  
+  // Predictions router (manter temporariamente para compatibilidade)
   predictions: router({
     list: publicProcedure.query(async () => {
-      return await db.getAllPredictions();
+      return [];
     }),
     
     history: publicProcedure
@@ -201,60 +164,7 @@ export const appRouter = router({
       }),
   }),
 
-  // Drift monitoring router
-  drift: router({
-    overview: publicProcedure.query(async () => {
-      const metrics = await db.getAllDriftMetrics();
-      const models = await db.getAllModels();
-      
-      // Agrupar métricas por modelo (pegar a mais recente)
-      const latestMetrics = new Map<number, typeof metrics[0]>();
-      metrics.forEach(metric => {
-        const existing = latestMetrics.get(metric.modelId);
-        if (!existing || new Date(metric.checkedAt) > new Date(existing.checkedAt)) {
-          latestMetrics.set(metric.modelId, metric);
-        }
-      });
-      
-      // Combinar com informações dos modelos
-      const overview = Array.from(latestMetrics.values()).map(metric => {
-        const model = models.find((m) => m.id === metric.modelId);
-        return {
-          modelId: metric.modelId,
-          modelName: model?.name || "Unknown Model",
-          driftScore: metric.driftScore / 100, // Converter de inteiro para decimal
-          status: metric.status,
-          recommendation: metric.recommendation,
-          lastCheck: metric.checkedAt,
-        };
-      });
-      
-      return overview;
-    }),
-    
-    critical: publicProcedure.query(async () => {
-      const criticalMetrics = await db.getCriticalDriftMetrics();
-      const models = await db.getAllModels();
-      
-      return criticalMetrics.map(metric => {
-        const model = models.find((m) => m.id === metric.modelId);
-        return {
-          modelId: metric.modelId,
-          modelName: model?.name || "Unknown Model",
-          driftScore: metric.driftScore / 100,
-          status: metric.status,
-          recommendation: metric.recommendation,
-          lastCheck: metric.checkedAt,
-        };
-      });
-    }),
-    
-    byModel: publicProcedure
-      .input(z.object({ modelId: z.number() }))
-      .query(async ({ input }) => {
-        return await db.getDriftMetricsByModel(input.modelId);
-      }),
-  }),
+  // Drift router antigo removido - usar novo abaixo
 
   // Dashboard statistics
   dashboard: router({
@@ -833,6 +743,330 @@ export const appRouter = router({
           avgScoreSemBureau: avgSemBureau.toFixed(4),
           diferencaMedia: (avgFinalComBureau - avgInternoComBureau).toFixed(4),
         };
+      }),
+  }),
+
+  // Gerenciamento de Modelos ML
+  models: router({
+    // Upload de novo modelo
+    upload: protectedProcedure
+      .input(z.object({
+        modelName: z.string(),
+        version: z.string(),
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]),
+        fileBase64: z.string(), // Arquivo .pkl em base64
+        metrics: z.object({
+          accuracy: z.number().optional(),
+          precision: z.number().optional(),
+          recall: z.number().optional(),
+          f1_score: z.number().optional(),
+          auc_roc: z.number().optional(),
+        }).optional(),
+        mlflowRunId: z.string().optional(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { uploadModel } = await import("./modelManagementService");
+        
+        // Decodificar base64 e salvar temporariamente
+        const buffer = Buffer.from(input.fileBase64, 'base64');
+        const tempPath = `/tmp/model_${Date.now()}.pkl`;
+        await import('fs/promises').then(fs => fs.writeFile(tempPath, buffer));
+        
+        try {
+          const result = await uploadModel({
+            tenantId: 1, // TODO: ctx.user.tenantId
+            modelName: input.modelName,
+            version: input.version,
+            product: input.product,
+            filePath: tempPath,
+            uploadedBy: ctx.user.id,
+            metrics: input.metrics,
+            mlflowRunId: input.mlflowRunId,
+          });
+          
+          // Limpar arquivo temporário
+          await import('fs/promises').then(fs => fs.unlink(tempPath));
+          
+          return result;
+        } catch (error: any) {
+          // Limpar arquivo temporário em caso de erro
+          await import('fs/promises').then(fs => fs.unlink(tempPath).catch(() => {}));
+          throw new TRPCError({ code: 'BAD_REQUEST', message: error.message });
+        }
+      }),
+
+    // Promover modelo para produção
+    promote: protectedProcedure
+      .input(z.object({
+        modelVersionId: z.number(),
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]),
+        reason: z.string(),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { promoteModel } = await import("./modelManagementService");
+        
+        const result = await promoteModel({
+          modelVersionId: input.modelVersionId,
+          tenantId: 1, // TODO: ctx.user.tenantId
+          product: input.product,
+          promotedBy: ctx.user.id,
+          reason: input.reason,
+        });
+        
+        return result;
+      }),
+
+    // Listar versões de modelos
+    list: protectedProcedure
+      .input(z.object({
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { listModelVersions } = await import("./modelManagementService");
+        
+        const models = await listModelVersions(1, input.product); // TODO: ctx.user.tenantId
+        
+        return models;
+      }),
+
+    // Buscar modelo em produção
+    getProduction: protectedProcedure
+      .input(z.object({
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]),
+      }))
+      .query(async ({ ctx, input }) => {
+        const { getProductionModel } = await import("./modelManagementService");
+        
+        const model = await getProductionModel(1, input.product); // TODO: ctx.user.tenantId
+        
+        return model;
+      }),
+  }),
+
+  // Monitoramento de Drift
+  drift: router({
+    // Detectar drift para um produto
+    detect: protectedProcedure
+      .input(z.object({
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const { detectDrift } = await import("./modelManagementService");
+        
+        const result = await detectDrift(1, input.product); // TODO: ctx.user.tenantId
+        
+        return result;
+      }),
+
+    // Listar histórico de drift
+    history: protectedProcedure
+      .input(z.object({
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]).optional(),
+        limit: z.number().default(50),
+      }))
+      .query(async ({ ctx, input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { driftMonitoring } = await import("../drizzle/schema");
+        
+        let query = database
+          .select()
+          .from(driftMonitoring)
+          .where(eq(driftMonitoring.tenantId, 1)) // TODO: ctx.user.tenantId
+          .orderBy(desc(driftMonitoring.checkedAt))
+          .limit(input.limit);
+        
+        if (input.product) {
+          query = database
+            .select()
+            .from(driftMonitoring)
+            .where(and(
+              eq(driftMonitoring.tenantId, 1),
+              eq(driftMonitoring.product, input.product)
+            ))
+            .orderBy(desc(driftMonitoring.checkedAt))
+            .limit(input.limit);
+        }
+        
+        const history = await query;
+        
+        return history;
+      }),
+
+    // Buscar alertas ativos
+    activeAlerts: protectedProcedure
+      .query(async ({ ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { driftMonitoring } = await import("../drizzle/schema");
+        
+        const alerts = await database
+          .select()
+          .from(driftMonitoring)
+          .where(and(
+            eq(driftMonitoring.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(driftMonitoring.alertSent, false),
+            sql`${driftMonitoring.status} IN ('warning', 'critical')`
+          ))
+          .orderBy(desc(driftMonitoring.checkedAt));
+        
+        return alerts;
+      }),
+  }),
+
+  // Plano de Sustentação
+  sustentation: router({
+    // Contratar plano
+    subscribe: protectedProcedure
+      .input(z.object({
+        planType: z.enum(["basic", "premium", "enterprise"]),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { sustentationPlans } = await import("../drizzle/schema");
+        
+        // Definir preços
+        const prices = {
+          basic: 2500,
+          premium: 7500,
+          enterprise: 15000,
+        };
+        
+        const retrainings = {
+          basic: 1,
+          premium: 3,
+          enterprise: 999, // Ilimitado
+        };
+        
+        const sla = {
+          basic: 48,
+          premium: 24,
+          enterprise: 4,
+        };
+        
+        // Verificar se já existe plano ativo
+        const existing = await database
+          .select()
+          .from(sustentationPlans)
+          .where(and(
+            eq(sustentationPlans.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(sustentationPlans.status, 'active')
+          ))
+          .limit(1);
+        
+        if (existing.length > 0) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Já existe um plano ativo' });
+        }
+        
+        // Criar plano
+        await database.insert(sustentationPlans).values({
+          tenantId: 1, // TODO: ctx.user.tenantId
+          planType: input.planType,
+          monthlyPrice: prices[input.planType].toString(),
+          status: 'active',
+          includedRetrainings: retrainings[input.planType],
+          responseTimeSLA: sla[input.planType],
+        });
+        
+        return { success: true, planType: input.planType };
+      }),
+
+    // Solicitar suporte
+    requestSupport: protectedProcedure
+      .input(z.object({
+        product: z.enum(["CARTAO", "CARNE", "EMPRESTIMO_PESSOAL"]),
+        description: z.string(),
+        priority: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+      }))
+      .mutation(async ({ ctx, input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { sustentationPlans, sustentationTickets } = await import("../drizzle/schema");
+        
+        // Verificar se tem plano ativo
+        const plan = await database
+          .select()
+          .from(sustentationPlans)
+          .where(and(
+            eq(sustentationPlans.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(sustentationPlans.status, 'active')
+          ))
+          .limit(1);
+        
+        if (plan.length === 0) {
+          throw new TRPCError({ code: 'BAD_REQUEST', message: 'Nenhum plano de sustentação ativo' });
+        }
+        
+        // Criar ticket
+        await database.insert(sustentationTickets).values({
+          tenantId: 1, // TODO: ctx.user.tenantId
+          planId: plan[0].id,
+          product: input.product,
+          type: 'manual_request',
+          status: 'pending',
+          priority: input.priority,
+          description: input.description,
+        });
+        
+        return { success: true, message: 'Ticket criado com sucesso' };
+      }),
+
+    // Listar tickets
+    listTickets: protectedProcedure
+      .input(z.object({
+        status: z.enum(["pending", "analyzing", "collecting_data", "retraining", "validating", "deploying", "completed", "cancelled"]).optional(),
+      }))
+      .query(async ({ ctx, input }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { sustentationTickets } = await import("../drizzle/schema");
+        
+        let query = database
+          .select()
+          .from(sustentationTickets)
+          .where(eq(sustentationTickets.tenantId, 1)) // TODO: ctx.user.tenantId
+          .orderBy(desc(sustentationTickets.createdAt));
+        
+        if (input.status) {
+          query = database
+            .select()
+            .from(sustentationTickets)
+            .where(and(
+              eq(sustentationTickets.tenantId, 1),
+              eq(sustentationTickets.status, input.status)
+            ))
+            .orderBy(desc(sustentationTickets.createdAt));
+        }
+        
+        const tickets = await query;
+        
+        return tickets;
+      }),
+
+    // Buscar plano ativo
+    getActivePlan: protectedProcedure
+      .query(async ({ ctx }) => {
+        const database = await getDb();
+        if (!database) throw new TRPCError({ code: 'INTERNAL_SERVER_ERROR', message: 'Database unavailable' });
+        
+        const { sustentationPlans } = await import("../drizzle/schema");
+        
+        const plan = await database
+          .select()
+          .from(sustentationPlans)
+          .where(and(
+            eq(sustentationPlans.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(sustentationPlans.status, 'active')
+          ))
+          .limit(1);
+        
+        return plan.length > 0 ? plan[0] : null;
       }),
   }),
 });
