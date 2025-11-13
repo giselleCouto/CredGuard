@@ -33,7 +33,6 @@ COPY shared ./shared
 COPY ml_models ./ml_models
 COPY tsconfig.json ./
 COPY vite.config.ts ./
-COPY index.html ./
 
 # Build frontend and backend
 RUN pnpm build

@@ -232,3 +232,7 @@
 - [x] Corrigir Dockerfile (cópia explícita de diretórios)
 - [x] Atualizar .dockerignore (menos restritivo)
 - [ ] Publicar com sucesso no Manus
+
+## Correção Final Dockerfile
+- [x] Remover cópia de index.html da raiz (arquivo está em client/)
+- [ ] Publicar com sucesso
