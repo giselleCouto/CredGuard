@@ -310,3 +310,10 @@
 - [x] Monitorar uso de memória
 - [x] Registrar uptime do servidor
 - [x] Testar endpoint
+
+## Validação Robusta de CPF
+- [x] Criar função validateCPF com algoritmo módulo 11
+- [x] Verificar CPFs inválidos conhecidos (sequências repetidas)
+- [x] Integrar validação em endpoints de predição
+- [x] Integrar validação em batch upload
+- [x] Testar com CPFs válidos e inválidos

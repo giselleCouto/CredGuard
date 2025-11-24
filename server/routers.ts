@@ -8,6 +8,7 @@ import { getDb } from "./db";
 import { users, predictions, batchJobs, customerData, customerScores, bureauCache } from "../drizzle/schema";
 import { eq, desc, sql, and, gt } from "drizzle-orm";
 import { TRPCError } from "@trpc/server";
+import { validateCPF, maskCPF } from "./utils/cpfValidator";
 
 export const appRouter = router({
   system: systemRouter,
@@ -150,6 +151,14 @@ export const appRouter = router({
         
         // Filtrar por CPF se fornecido
         if (cpf) {
+          // Validar CPF antes de filtrar
+          if (!validateCPF(cpf)) {
+            throw new TRPCError({
+              code: 'BAD_REQUEST',
+              message: 'CPF inválido. Verifique o formato e dígitos verificadores.',
+            });
+          }
+          
           allPredictions = allPredictions.filter((p) => {
             try {
               const inputData = JSON.parse(p.inputData);
@@ -337,10 +346,19 @@ export const appRouter = router({
           const batchJobId = jobRecord[0].id;
           
           // Processar cada linha
+          let invalidCPFCount = 0;
           for (let i = 1; i < lines.length; i++) {
             const values = lines[i].split(',').map(v => v.trim());
             const row: any = {};
             headers.forEach((h, idx) => { row[h] = values[idx]; });
+            
+            // Validar CPF
+            if (row.cpf && !validateCPF(row.cpf)) {
+              invalidCPFCount++;
+              console.warn(`[Batch Upload] CPF inválido na linha ${i + 1}: ${maskCPF(row.cpf)}`);
+              // Pular linha com CPF inválido
+              continue;
+            }
             
             // Salvar dados raw
             await database.insert(customerData).values({
