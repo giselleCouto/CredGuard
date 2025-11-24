@@ -37,7 +37,6 @@ export default function Predictions() {
       return;
     }
     createPrediction.mutate({
-      tenantId: parseInt(tenantId),
       creditType: creditType as any,
       data: { renda: parseFloat(renda), idade: parseInt(idade), score_bureau: parseInt(scoreBureau) },
     });

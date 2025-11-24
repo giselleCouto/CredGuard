@@ -280,3 +280,11 @@
 - [x] Adicionar campo de input para CPF
 - [x] Ajustar backend para filtrar por CPF
 - [x] Testar busca por CPF
+
+## Correções Críticas de Segurança
+- [x] Corrigir 9 TODOs de tenantId hardcoded
+- [x] Mudar tenants.list para protectedProcedure
+- [x] Mudar tenants.getById para protectedProcedure
+- [x] Mudar dashboard.stats para protectedProcedure
+- [x] Mudar predictions.create para protectedProcedure
+- [x] Validar isolamento multi-tenant em todas as queries

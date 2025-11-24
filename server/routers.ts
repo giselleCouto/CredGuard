@@ -25,13 +25,19 @@ export const appRouter = router({
 
   // Tenants router
   tenants: router({
-    list: publicProcedure.query(async () => {
-      return await db.getAllTenants();
+    // Retorna apenas o tenant do usuário logado
+    list: protectedProcedure.query(async ({ ctx }) => {
+      const tenant = await db.getTenantById(ctx.user.tenantId);
+      return tenant ? [tenant] : [];
     }),
     
-    getById: publicProcedure
+    // Retorna apenas se for o tenant do usuário logado
+    getById: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
+        if (input.id !== ctx.user.tenantId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado' });
+        }
         return await db.getTenantById(input.id);
       }),
     
@@ -123,30 +129,39 @@ export const appRouter = router({
         };
       }),
     
-    getById: publicProcedure
+    getById: protectedProcedure
       .input(z.object({ id: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
         const predictions = await db.getAllPredictions();
         const prediction = predictions.find((p) => p.id === input.id);
         if (!prediction) {
-          throw new Error("Predi\u00e7\u00e3o n\u00e3o encontrada");
+          throw new TRPCError({ code: 'NOT_FOUND', message: 'Predição não encontrada' });
+        }
+        // Validar que a predição pertence ao tenant do usuário
+        if (prediction.tenantId !== ctx.user.tenantId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado' });
         }
         return prediction;
       }),
     
-    listByTenant: publicProcedure
+    listByTenant: protectedProcedure
       .input(z.object({ tenantId: z.number() }))
-      .query(async ({ input }) => {
+      .query(async ({ input, ctx }) => {
+        // Validar que está buscando apenas dados do próprio tenant
+        if (input.tenantId !== ctx.user.tenantId) {
+          throw new TRPCError({ code: 'FORBIDDEN', message: 'Acesso negado' });
+        }
         return await db.getPredictionsByTenant(input.tenantId);
       }),
     
-    create: publicProcedure
+    create: protectedProcedure
       .input(z.object({
-        tenantId: z.number(),
         creditType: z.enum(["CARTAO", "EMPRESTIMO_PESSOAL", "CARNE", "FINANCIAMENTO"]),
         data: z.record(z.string(), z.any()),
       }))
-      .mutation(async ({ input }) => {
+      .mutation(async ({ input, ctx }) => {
+        // Usar tenantId do usuário logado ao invés de receber como input
+        const tenantId = ctx.user.tenantId;
         // Simular predição (em produção, aqui seria chamado o modelo ML)
         const riskClasses = ["R1", "R2", "R3", "R4", "R5", "R6", "R7", "R8", "R9", "R10"];
         const randomRisk = riskClasses[Math.floor(Math.random() * riskClasses.length)];
@@ -154,7 +169,7 @@ export const appRouter = router({
         const randomLimit = Math.floor(Math.random() * 50000) + 5000;
         
         // Buscar modelo de produção para este tenant e tipo de crédito
-        const models = await db.getModelsByTenant(input.tenantId);
+        const models = await db.getModelsByTenant(tenantId);
         const productionModel = models.find(
           (m) => m.creditType === input.creditType && m.status === "production"
         );
@@ -163,7 +178,7 @@ export const appRouter = router({
         
         return await db.createPrediction({
           predictionId,
-          tenantId: input.tenantId,
+          tenantId,
           modelId: productionModel?.id || 0,
           creditType: input.creditType,
           riskClass: randomRisk,
@@ -178,7 +193,7 @@ export const appRouter = router({
 
   // Dashboard statistics
   dashboard: router({
-    stats: publicProcedure.query(async () => {
+    stats: protectedProcedure.query(async ({ ctx }) => {
       const tenants = await db.getAllTenants();
       const models = await db.getAllModels();
       const predictions = await db.getAllPredictions();
@@ -336,7 +351,7 @@ export const appRouter = router({
               
               // Enriquecimento com bureau (se habilitado)
               const { enrichWithBureau, calculateHybridScore, isBureauEnabled } = await import("./bureauService");
-              const bureauEnabled = await isBureauEnabled(1); // TODO: usar ctx.user.tenantId
+              const bureauEnabled = await isBureauEnabled(ctx.user.tenantId);
               
               let bureauData: any = { source: 'disabled' };
               let scoreFinal = scoreInterno;
@@ -890,7 +905,7 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const { listModelVersions } = await import("./modelManagementService");
         
-        const models = await listModelVersions(1, input.product); // TODO: ctx.user.tenantId
+        const models = await listModelVersions(ctx.user.tenantId, input.product);
         
         return models;
       }),
@@ -903,7 +918,7 @@ export const appRouter = router({
       .query(async ({ ctx, input }) => {
         const { getProductionModel } = await import("./modelManagementService");
         
-        const model = await getProductionModel(1, input.product); // TODO: ctx.user.tenantId
+        const model = await getProductionModel(ctx.user.tenantId, input.product);
         
         return model;
       }),
@@ -919,7 +934,7 @@ export const appRouter = router({
       .mutation(async ({ ctx, input }) => {
         const { detectDrift } = await import("./modelManagementService");
         
-        const result = await detectDrift(1, input.product); // TODO: ctx.user.tenantId
+        const result = await detectDrift(ctx.user.tenantId, input.product);
         
         return result;
       }),
@@ -939,7 +954,7 @@ export const appRouter = router({
         let query = database
           .select()
           .from(driftMonitoring)
-          .where(eq(driftMonitoring.tenantId, 1)) // TODO: ctx.user.tenantId
+          .where(eq(driftMonitoring.tenantId, ctx.user.tenantId))
           .orderBy(desc(driftMonitoring.checkedAt))
           .limit(input.limit);
         
@@ -1029,7 +1044,7 @@ export const appRouter = router({
           .select()
           .from(sustentationPlans)
           .where(and(
-            eq(sustentationPlans.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(sustentationPlans.tenantId, ctx.user.tenantId),
             eq(sustentationPlans.status, 'active')
           ))
           .limit(1);
@@ -1069,7 +1084,7 @@ export const appRouter = router({
           .select()
           .from(sustentationPlans)
           .where(and(
-            eq(sustentationPlans.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(sustentationPlans.tenantId, ctx.user.tenantId),
             eq(sustentationPlans.status, 'active')
           ))
           .limit(1);
@@ -1106,7 +1121,7 @@ export const appRouter = router({
         let query = database
           .select()
           .from(sustentationTickets)
-          .where(eq(sustentationTickets.tenantId, 1)) // TODO: ctx.user.tenantId
+          .where(eq(sustentationTickets.tenantId, ctx.user.tenantId))
           .orderBy(desc(sustentationTickets.createdAt));
         
         if (input.status) {
@@ -1137,7 +1152,7 @@ export const appRouter = router({
           .select()
           .from(sustentationPlans)
           .where(and(
-            eq(sustentationPlans.tenantId, 1), // TODO: ctx.user.tenantId
+            eq(sustentationPlans.tenantId, ctx.user.tenantId),
             eq(sustentationPlans.status, 'active')
           ))
           .limit(1);
