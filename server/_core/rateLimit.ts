@@ -1,4 +1,5 @@
 import rateLimit from 'express-rate-limit';
+import { logRateLimit } from './logger';
 
 /**
  * Rate limiter global para todas as requisições
@@ -10,6 +11,13 @@ export const globalLimiter = rateLimit({
   message: {
     error: 'Muitas requisições deste IP, tente novamente em 1 minuto.',
     code: 'RATE_LIMIT_EXCEEDED',
+  },
+  handler: (req, res) => {
+    logRateLimit.exceeded(req.ip || 'unknown', req.path, 'global');
+    res.status(429).json({
+      error: 'Muitas requisições deste IP, tente novamente em 1 minuto.',
+      code: 'RATE_LIMIT_EXCEEDED',
+    });
   },
   standardHeaders: true, // Retorna info de rate limit nos headers `RateLimit-*`
   legacyHeaders: false, // Desabilita headers `X-RateLimit-*`
@@ -32,6 +40,13 @@ export const authLimiter = rateLimit({
     error: 'Muitas tentativas de login, tente novamente em 1 minuto.',
     code: 'AUTH_RATE_LIMIT_EXCEEDED',
   },
+  handler: (req, res) => {
+    logRateLimit.exceeded(req.ip || 'unknown', req.path, 'auth');
+    res.status(429).json({
+      error: 'Muitas tentativas de login, tente novamente em 1 minuto.',
+      code: 'AUTH_RATE_LIMIT_EXCEEDED',
+    });
+  },
   standardHeaders: true,
   legacyHeaders: false,
   // keyGenerator padrão usa req.ip com suporte a IPv6
@@ -51,6 +66,13 @@ export const uploadLimiter = rateLimit({
     error: 'Muitos uploads, tente novamente em 1 minuto.',
     code: 'UPLOAD_RATE_LIMIT_EXCEEDED',
   },
+  handler: (req, res) => {
+    logRateLimit.exceeded(req.ip || 'unknown', req.path, 'upload');
+    res.status(429).json({
+      error: 'Muitos uploads, tente novamente em 1 minuto.',
+      code: 'UPLOAD_RATE_LIMIT_EXCEEDED',
+    });
+  },
   standardHeaders: true,
   legacyHeaders: false,
   // keyGenerator padrão usa req.ip com suporte a IPv6
@@ -68,6 +90,13 @@ export const mlLimiter = rateLimit({
     error: 'Muitas operações de ML, tente novamente em 1 minuto.',
     code: 'ML_RATE_LIMIT_EXCEEDED',
   },
+  handler: (req, res) => {
+    logRateLimit.exceeded(req.ip || 'unknown', req.path, 'ml');
+    res.status(429).json({
+      error: 'Muitas operações de ML, tente novamente em 1 minuto.',
+      code: 'ML_RATE_LIMIT_EXCEEDED',
+    });
+  },
   standardHeaders: true,
   legacyHeaders: false,
   // keyGenerator padrão usa req.ip com suporte a IPv6
@@ -84,6 +113,13 @@ export const bureauLimiter = rateLimit({
   message: {
     error: 'Muitas consultas de bureau, tente novamente em 1 minuto.',
     code: 'BUREAU_RATE_LIMIT_EXCEEDED',
+  },
+  handler: (req, res) => {
+    logRateLimit.exceeded(req.ip || 'unknown', req.path, 'bureau');
+    res.status(429).json({
+      error: 'Muitas consultas de bureau, tente novamente em 1 minuto.',
+      code: 'BUREAU_RATE_LIMIT_EXCEEDED',
+    });
   },
   standardHeaders: true,
   legacyHeaders: false,

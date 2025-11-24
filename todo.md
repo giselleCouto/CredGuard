@@ -295,3 +295,11 @@
 - [x] Configurar rate limiter estrito para auth (5 req/min)
 - [x] Configurar rate limiter para upload (10 req/min)
 - [x] Testar proteção contra força bruta
+
+## Implementação de Logging Estruturado
+- [x] Instalar winston
+- [x] Configurar logger com níveis (info, warn, error)
+- [x] Integrar com rate limiters
+- [x] Registrar eventos de autenticação
+- [x] Registrar operações críticas (ML, uploads)
+- [x] Testar logs em diferentes níveis

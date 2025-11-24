@@ -3,6 +3,7 @@ import type { Express, Request, Response } from "express";
 import * as db from "../db";
 import { getSessionCookieOptions } from "./cookies";
 import { sdk } from "./sdk";
+import { logAuth, logError } from "./logger";
 
 function getQueryParam(req: Request, key: string): string | undefined {
   const value = req.query[key];
@@ -35,6 +36,12 @@ export function registerOAuthRoutes(app: Express) {
         loginMethod: userInfo.loginMethod ?? userInfo.platform ?? null,
         lastSignedIn: new Date(),
       });
+      
+      // Log de login bem-sucedido
+      const user = await db.getUserByOpenId(userInfo.openId);
+      if (user) {
+        logAuth.loginSuccess(user.id, user.email || 'no-email', req.ip || 'unknown');
+      }
 
       const sessionToken = await sdk.createSessionToken(userInfo.openId, {
         name: userInfo.name || "",
@@ -46,7 +53,7 @@ export function registerOAuthRoutes(app: Express) {
 
       res.redirect(302, "/");
     } catch (error) {
-      console.error("[OAuth] Callback failed", error);
+      logError.api('/api/oauth/callback', error instanceof Error ? error.message : String(error));
       res.status(500).json({ error: "OAuth callback failed" });
     }
   });

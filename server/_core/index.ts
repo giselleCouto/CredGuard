@@ -8,6 +8,7 @@ import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { globalLimiter, authLimiter, uploadLimiter, mlLimiter, bureauLimiter } from "./rateLimit";
+import { logger, logError } from "./logger";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -74,7 +75,21 @@ async function startServer() {
   }
 
   server.listen(port, () => {
-    console.log(`Server running on http://localhost:${port}/`);
+    logger.info(`Servidor iniciado`, {
+      port,
+      environment: process.env.NODE_ENV || 'development',
+      url: `http://localhost:${port}/`,
+    });
+  });
+  
+  // Capturar erros não tratados
+  process.on('unhandledRejection', (reason, promise) => {
+    logError.unhandled(reason instanceof Error ? reason : new Error(String(reason)));
+  });
+  
+  process.on('uncaughtException', (error) => {
+    logError.unhandled(error);
+    process.exit(1);
   });
 }
 
