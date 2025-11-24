@@ -12,6 +12,68 @@ import { TRPCError } from "@trpc/server";
 export const appRouter = router({
   system: systemRouter,
   
+  // Health check endpoint (público)
+  health: router({
+    check: publicProcedure.query(async () => {
+      // Verificar banco de dados
+      const startTime = Date.now();
+      let databaseStatus: 'up' | 'down' = 'down';
+      let dbResponseTime = 0;
+      let dbError: string | undefined;
+      
+      try {
+        const database = await getDb();
+        if (database) {
+          await database.execute('SELECT 1');
+          databaseStatus = 'up';
+        }
+        dbResponseTime = Date.now() - startTime;
+      } catch (error) {
+        dbResponseTime = Date.now() - startTime;
+        dbError = error instanceof Error ? error.message : String(error);
+      }
+      
+      // Verificar memória
+      const memUsage = process.memoryUsage();
+      const heapUsed = Math.round(memUsage.heapUsed / 1024 / 1024);
+      const heapTotal = Math.round(memUsage.heapTotal / 1024 / 1024);
+      const percentage = Math.round((memUsage.heapUsed / memUsage.heapTotal) * 100);
+      
+      let memoryStatus: 'ok' | 'warning' | 'critical' = 'ok';
+      if (percentage >= 90) memoryStatus = 'critical';
+      else if (percentage >= 80) memoryStatus = 'warning';
+      
+      // Status geral
+      let overallStatus: 'healthy' | 'degraded' | 'unhealthy' = 'healthy';
+      if (databaseStatus === 'down' || memoryStatus === 'critical') {
+        overallStatus = 'unhealthy';
+      } else if (memoryStatus === 'warning') {
+        overallStatus = 'degraded';
+      }
+      
+      return {
+        status: overallStatus,
+        timestamp: new Date().toISOString(),
+        uptime: Math.floor(process.uptime()),
+        checks: {
+          database: {
+            status: databaseStatus,
+            responseTime: dbResponseTime,
+            error: dbError,
+          },
+          memory: {
+            status: memoryStatus,
+            usage: {
+              heapUsed,
+              heapTotal,
+              percentage,
+            },
+          },
+        },
+      };
+    }),
+  }),
+  
   auth: router({
     me: publicProcedure.query(opts => opts.ctx.user),
     logout: publicProcedure.mutation(({ ctx }) => {

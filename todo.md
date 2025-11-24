@@ -303,3 +303,10 @@
 - [x] Registrar eventos de autenticação
 - [x] Registrar operações críticas (ML, uploads)
 - [x] Testar logs em diferentes níveis
+
+## Implementação de Health Check
+- [x] Criar endpoint /api/health (via tRPC health.check)
+- [x] Verificar conexão com banco de dados
+- [x] Monitorar uso de memória
+- [x] Registrar uptime do servidor
+- [x] Testar endpoint
