@@ -7,6 +7,7 @@ import { registerOAuthRoutes } from "./oauth";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
+import { globalLimiter, authLimiter, uploadLimiter, mlLimiter, bureauLimiter } from "./rateLimit";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -30,9 +31,24 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 async function startServer() {
   const app = express();
   const server = createServer(app);
+  
+  // Trust proxy (para obter IP real do cliente atrás de proxies/load balancers)
+  app.set('trust proxy', 1);
+  
   // Configure body parser with larger size limit for file uploads
   app.use(express.json({ limit: "50mb" }));
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
+  
+  // Rate limiting global para todas as rotas
+  app.use(globalLimiter);
+  
+  // Rate limiters específicos para rotas sensíveis
+  app.use('/api/oauth', authLimiter);
+  app.use('/api/trpc/batch.upload', uploadLimiter);
+  app.use('/api/trpc/batch.process', uploadLimiter);
+  app.use('/api/trpc/predictions.create', mlLimiter);
+  app.use('/api/trpc/drift.detect', mlLimiter);
+  app.use('/api/trpc/bureau', bureauLimiter);
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API

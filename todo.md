@@ -288,3 +288,10 @@
 - [x] Mudar dashboard.stats para protectedProcedure
 - [x] Mudar predictions.create para protectedProcedure
 - [x] Validar isolamento multi-tenant em todas as queries
+
+## Implementação de Rate Limiting
+- [x] Instalar express-rate-limit
+- [x] Configurar rate limiter global (100 req/min)
+- [x] Configurar rate limiter estrito para auth (5 req/min)
+- [x] Configurar rate limiter para upload (10 req/min)
+- [x] Testar proteção contra força bruta
