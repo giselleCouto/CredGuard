@@ -13,7 +13,8 @@
     "db:push": "drizzle-kit generate && drizzle-kit migrate"
   },
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.693.0",
+    "@aws-sdk/client-cloudwatch": "^3.939.0",
+    "@aws-sdk/client-s3": "^3.907.0",
     "@aws-sdk/s3-request-presigner": "^3.693.0",
     "@radix-ui/react-accordion": "^1.2.12",
     "@radix-ui/react-alert-dialog": "^1.1.15",
@@ -77,6 +78,7 @@
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
     "winston": "^3.18.3",
+    "winston-cloudwatch": "^6.3.0",
     "wouter": "^3.3.5",
     "zod": "^4.1.12"
   },

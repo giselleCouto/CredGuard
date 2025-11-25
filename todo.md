@@ -324,3 +324,31 @@
 - [x] Exibir feedback visual (ícone ✓/✗)
 - [x] Validar CPFs no CSV antes de enviar
 - [x] Testar com diferentes formatos de CPF
+
+## Resolução de Pontos Críticos para Produção AWS
+
+### Nível 1: Crítico
+- [x] Criar framework de testes de integração (20+ casos estruturados)
+- [x] Criar módulo CloudWatch Logs (cloudwatch.ts)
+- [x] Instalar dependências AWS SDK
+- [ ] Integrar CloudWatch no logger principal (2h)
+- [ ] Executar testes de integração (1 dia)
+- [x] Documentar estratégia de backup RDS (AWS_DEPLOYMENT.md)
+- [ ] Implementar soft delete em tabelas críticas (1 dia)
+- [ ] Gerar documentação OpenAPI/Swagger (2-3 dias)
+- [ ] Criar exemplos de código (cURL, Python, JS)
+
+### Nível 2: Importante
+- [ ] Criar testes de carga com k6 (2-3 dias)
+- [ ] Otimizar queries com índices
+- [ ] Documentar capacidade (usuários simultâneos)
+
+### Infraestrutura AWS
+- [x] Dockerfile já existe (otimizado para produção)
+- [x] docker-compose.yml criado
+- [x] Documentar deploy AWS completo (AWS_DEPLOYMENT.md - 40+ páginas)
+- [x] Documentar RDS MySQL com backup automático
+- [x] Documentar S3 para storage
+- [x] Documentar custos AWS estimados (3 cenários)
+- [x] Criar análise de prontidão comercial (ANALISE_COMERCIAL.md)
+- [x] Criar resumo de implementações (IMPLEMENTACOES_REALIZADAS.md)

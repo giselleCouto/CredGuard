@@ -1,0 +1,95 @@
+# docker-compose.yml - CredGuard
+# Para desenvolvimento local e testes de produção
+
+version: '3.8'
+
+services:
+  # Aplicação principal
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+      - DATABASE_URL=${DATABASE_URL}
+      - JWT_SECRET=${JWT_SECRET}
+      - OAUTH_SERVER_URL=${OAUTH_SERVER_URL}
+      - VITE_OAUTH_PORTAL_URL=${VITE_OAUTH_PORTAL_URL}
+      - VITE_APP_ID=${VITE_APP_ID}
+      - OWNER_OPEN_ID=${OWNER_OPEN_ID}
+      - OWNER_NAME=${OWNER_NAME}
+      - VITE_APP_TITLE=${VITE_APP_TITLE:-CredGuard}
+      - VITE_APP_LOGO=${VITE_APP_LOGO}
+      - BUILT_IN_FORGE_API_URL=${BUILT_IN_FORGE_API_URL}
+      - BUILT_IN_FORGE_API_KEY=${BUILT_IN_FORGE_API_KEY}
+      - VITE_FRONTEND_FORGE_API_KEY=${VITE_FRONTEND_FORGE_API_KEY}
+      - VITE_FRONTEND_FORGE_API_URL=${VITE_FRONTEND_FORGE_API_URL}
+      # AWS específico
+      - AWS_REGION=${AWS_REGION:-us-east-1}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+      - S3_BUCKET=${S3_BUCKET}
+      - CLOUDWATCH_LOG_GROUP=${CLOUDWATCH_LOG_GROUP:-/aws/ecs/credguard}
+    depends_on:
+      - db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  # Banco de dados MySQL (para desenvolvimento local)
+  # Em produção AWS, usar RDS
+  db:
+    image: mysql:8.0
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD:-root_password}
+      - MYSQL_DATABASE=${MYSQL_DATABASE:-credguard}
+      - MYSQL_USER=${MYSQL_USER:-credguard_user}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD:-credguard_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./drizzle/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-p${MYSQL_ROOT_PASSWORD:-root_password}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    command: --default-authentication-plugin=mysql_native_password
+
+  # Redis (opcional - para cache)
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+    driver: local
+  redis_data:
+    driver: local
+
+networks:
+  default:
+    name: credguard_network
