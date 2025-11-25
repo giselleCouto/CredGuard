@@ -9,6 +9,7 @@ import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
 import { globalLimiter, authLimiter, uploadLimiter, mlLimiter, bureauLimiter } from "./rateLimit";
 import { logger, logError } from "./logger";
+import { setupSwaggerUI } from "./openapi/swagger";
 
 function isPortAvailable(port: number): Promise<boolean> {
   return new Promise(resolve => {
@@ -51,6 +52,9 @@ async function startServer() {
   app.use('/api/trpc/predictions.create', mlLimiter);
   app.use('/api/trpc/drift.detect', mlLimiter);
   app.use('/api/trpc/bureau', bureauLimiter);
+  // OpenAPI/Swagger UI
+  setupSwaggerUI(app);
+  
   // OAuth callback under /api/oauth/callback
   registerOAuthRoutes(app);
   // tRPC API

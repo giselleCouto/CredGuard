@@ -352,3 +352,12 @@
 - [x] Documentar custos AWS estimados (3 cenários)
 - [x] Criar análise de prontidão comercial (ANALISE_COMERCIAL.md)
 - [x] Criar resumo de implementações (IMPLEMENTACOES_REALIZADAS.md)
+
+## Implementação de Documentação OpenAPI
+- [x] Instalar swagger-ui-express
+- [x] Criar spec OpenAPI 3.0 manualmente (compatível tRPC v11)
+- [x] Adicionar metadados OpenAPI (tags, descrições, exemplos)
+- [x] Criar rota /api/docs com Swagger UI
+- [x] Criar rota /api/openapi.json para spec JSON
+- [x] Adicionar exemplos de código (cURL, request/response)
+- [x] Configurar autenticação Bearer Token no Swagger
