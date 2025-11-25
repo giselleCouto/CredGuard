@@ -361,3 +361,10 @@
 - [x] Criar rota /api/openapi.json para spec JSON
 - [x] Adicionar exemplos de código (cURL, request/response)
 - [x] Configurar autenticação Bearer Token no Swagger
+
+## Expansão de Documentação OpenAPI
+- [x] Adicionar endpoints Models (upload, list)
+- [x] Adicionar endpoints Drift (detect, history)
+- [x] Adicionar endpoints Bureau (getConfig, updateConfig, getMetrics)
+- [x] Adicionar schemas completos para todos os tipos de resposta
+- [x] Documentar 12 endpoints no total (health + batch + models + drift + bureau)

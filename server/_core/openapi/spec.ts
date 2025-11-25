@@ -272,6 +272,295 @@ curl -H "Authorization: Bearer YOUR_JWT_TOKEN" https://api.credguard.com/api/bat
           }
         }
       }
+    },
+    '/api/trpc/models.upload': {
+      post: {
+        tags: ['Models'],
+        summary: 'Upload de modelo ML (.pkl)',
+        description: 'Faz upload de arquivo .pkl com modelo treinado',
+        operationId: 'modelsUpload',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  modelName: { type: 'string', description: 'Nome do modelo (ex: fa_8)' },
+                  product: { type: 'string', enum: ['CARTAO', 'CARNE', 'EMPRESTIMO'] },
+                  version: { type: 'string', description: 'Versão do modelo (ex: 1.0.0)' },
+                  fileBase64: { type: 'string', description: 'Arquivo .pkl em base64' },
+                  metrics: {
+                    type: 'object',
+                    properties: {
+                      accuracy: { type: 'number' },
+                      precision: { type: 'number' },
+                      recall: { type: 'number' },
+                      f1Score: { type: 'number' }
+                    }
+                  }
+                },
+                required: ['modelName', 'product', 'version', 'fileBase64']
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Modelo enviado com sucesso',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    modelId: { type: 'number' },
+                    status: { type: 'string', enum: ['validated', 'pending'] }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/trpc/models.list': {
+      get: {
+        tags: ['Models'],
+        summary: 'Listar modelos ML',
+        description: 'Retorna lista de modelos disponíveis por produto',
+        operationId: 'modelsList',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'product',
+            in: 'query',
+            required: true,
+            schema: { type: 'string', enum: ['CARTAO', 'CARNE', 'EMPRESTIMO'] }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Lista de modelos',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'number' },
+                      modelName: { type: 'string' },
+                      version: { type: 'string' },
+                      product: { type: 'string' },
+                      status: { type: 'string', enum: ['production', 'validated', 'pending'] },
+                      metrics: { type: 'object' },
+                      createdAt: { type: 'string', format: 'date-time' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/trpc/drift.detect': {
+      post: {
+        tags: ['Drift'],
+        summary: 'Detectar drift de modelo',
+        description: 'Calcula PSI (Population Stability Index) para detectar drift',
+        operationId: 'driftDetect',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  modelId: { type: 'number' },
+                  jobId: { type: 'string', format: 'uuid', description: 'Job de referência' }
+                },
+                required: ['modelId', 'jobId']
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Resultado da detecção de drift',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    driftDetected: { type: 'boolean' },
+                    psi: { type: 'number', description: 'Population Stability Index' },
+                    status: { type: 'string', enum: ['stable', 'warning', 'critical'] },
+                    message: { type: 'string' }
+                  }
+                },
+                example: {
+                  driftDetected: true,
+                  psi: 0.25,
+                  status: 'critical',
+                  message: 'Drift crítico detectado (PSI > 0.2). Retreinamento recomendado.'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/trpc/drift.history': {
+      get: {
+        tags: ['Drift'],
+        summary: 'Histórico de drift',
+        description: 'Retorna histórico de detecções de drift',
+        operationId: 'driftHistory',
+        security: [{ bearerAuth: [] }],
+        parameters: [
+          {
+            name: 'modelId',
+            in: 'query',
+            required: false,
+            schema: { type: 'number' }
+          },
+          {
+            name: 'limit',
+            in: 'query',
+            required: false,
+            schema: { type: 'number', default: 50 }
+          }
+        ],
+        responses: {
+          '200': {
+            description: 'Histórico de drift',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'array',
+                  items: {
+                    type: 'object',
+                    properties: {
+                      id: { type: 'number' },
+                      modelId: { type: 'number' },
+                      psi: { type: 'number' },
+                      status: { type: 'string' },
+                      detectedAt: { type: 'string', format: 'date-time' }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/trpc/bureau.getConfig': {
+      get: {
+        tags: ['Bureau'],
+        summary: 'Consultar configuração de bureau',
+        description: 'Retorna status de ativação e provedor configurado',
+        operationId: 'bureauGetConfig',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Configuração do bureau',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    bureauEnabled: { type: 'boolean' },
+                    provider: { type: 'string', enum: ['SERASA', 'BOA_VISTA', 'SPC'], nullable: true },
+                    apiToken: { type: 'string', nullable: true }
+                  }
+                },
+                example: {
+                  bureauEnabled: true,
+                  provider: 'SERASA',
+                  apiToken: 'sk_test_***'
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/trpc/bureau.updateConfig': {
+      post: {
+        tags: ['Bureau'],
+        summary: 'Atualizar configuração de bureau',
+        description: 'Ativa/desativa integração com bureau de crédito',
+        operationId: 'bureauUpdateConfig',
+        security: [{ bearerAuth: [] }],
+        requestBody: {
+          required: true,
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  bureauEnabled: { type: 'boolean' },
+                  provider: { type: 'string', enum: ['SERASA', 'BOA_VISTA', 'SPC'] },
+                  apiToken: { type: 'string' }
+                },
+                required: ['bureauEnabled']
+              }
+            }
+          }
+        },
+        responses: {
+          '200': {
+            description: 'Configuração atualizada',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    success: { type: 'boolean' }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    '/api/trpc/bureau.getMetrics': {
+      get: {
+        tags: ['Bureau'],
+        summary: 'Métricas de uso do bureau',
+        description: 'Retorna estatísticas de consultas e custos',
+        operationId: 'bureauGetMetrics',
+        security: [{ bearerAuth: [] }],
+        responses: {
+          '200': {
+            description: 'Métricas do bureau',
+            content: {
+              'application/json': {
+                schema: {
+                  type: 'object',
+                  properties: {
+                    totalQueries: { type: 'number' },
+                    cacheHits: { type: 'number' },
+                    cacheMisses: { type: 'number' },
+                    estimatedCost: { type: 'number', description: 'Custo estimado em R$' }
+                  }
+                },
+                example: {
+                  totalQueries: 1500,
+                  cacheHits: 900,
+                  cacheMisses: 600,
+                  estimatedCost: 300.00
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   components: {
