@@ -317,3 +317,10 @@
 - [x] Integrar validação em endpoints de predição
 - [x] Integrar validação em batch upload
 - [x] Testar com CPFs válidos e inválidos
+
+## Validação de CPF no Frontend
+- [x] Criar módulo cpfValidator.ts no frontend
+- [x] Adicionar validação em tempo real no BatchUpload
+- [x] Exibir feedback visual (ícone ✓/✗)
+- [x] Validar CPFs no CSV antes de enviar
+- [x] Testar com diferentes formatos de CPF

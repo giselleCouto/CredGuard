@@ -3,15 +3,24 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
-import { Upload, FileText, Download, CheckCircle, XCircle, Clock, Loader2 } from "lucide-react";
+import { Upload, FileText, Download, CheckCircle, XCircle, Clock, Loader2, AlertTriangle } from "lucide-react";
 import Breadcrumbs from "@/components/Breadcrumbs";
 import ThemeToggle from "@/components/ThemeToggle";
 import { Link } from "wouter";
+
+import { validateCPFsInCSV } from "@/utils/cpfValidator";
 
 export default function BatchUpload() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
   const [dragActive, setDragActive] = useState(false);
+  const [validationResult, setValidationResult] = useState<{
+    valid: boolean;
+    invalidCPFs: Array<{ line: number; cpf: string; reason: string }>;
+    totalRows: number;
+    validRows: number;
+  } | null>(null);
+  const [validating, setValidating] = useState(false);
 
   const { data: jobs, isLoading: jobsLoading, refetch } = trpc.batch.listJobs.useQuery({ limit: 20, offset: 0 });
   const uploadMutation = trpc.batch.upload.useMutation({
@@ -27,9 +36,11 @@ export default function BatchUpload() {
     },
   });
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setSelectedFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setSelectedFile(file);
+      await validateFile(file);
     }
   };
 
@@ -43,19 +54,48 @@ export default function BatchUpload() {
     }
   };
 
-  const handleDrop = (e: React.DragEvent) => {
+  const handleDrop = async (e: React.DragEvent) => {
     e.preventDefault();
     e.stopPropagation();
     setDragActive(false);
     
     if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-      setSelectedFile(e.dataTransfer.files[0]);
+      const file = e.dataTransfer.files[0];
+      setSelectedFile(file);
+      await validateFile(file);
+    }
+  };
+  
+  const validateFile = async (file: File) => {
+    setValidating(true);
+    setValidationResult(null);
+    
+    try {
+      const text = await file.text();
+      const result = validateCPFsInCSV(text);
+      setValidationResult(result);
+      
+      if (!result.valid) {
+        toast.warning(`${result.invalidCPFs.length} CPF(s) inválido(s) encontrado(s)`);
+      } else {
+        toast.success(`Todos os ${result.validRows} CPFs são válidos!`);
+      }
+    } catch (error) {
+      console.error('Erro ao validar arquivo:', error);
+      toast.error('Erro ao validar arquivo CSV');
+    } finally {
+      setValidating(false);
     }
   };
 
   const handleUpload = async () => {
     if (!selectedFile) {
       toast.error("Selecione um arquivo CSV");
+      return;
+    }
+    
+    if (validationResult && !validationResult.valid) {
+      toast.error(`Não é possível fazer upload com ${validationResult.invalidCPFs.length} CPF(s) inválido(s)`);
       return;
     }
 
@@ -199,32 +239,88 @@ export default function BatchUpload() {
               </div>
 
               {selectedFile && (
-                <div className="bg-muted p-4 rounded-lg flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <FileText className="h-8 w-8 text-primary" />
-                    <div>
-                      <p className="font-medium">{selectedFile.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {(selectedFile.size / 1024).toFixed(2)} KB
-                      </p>
+                <div className="space-y-3">
+                  <div className="bg-muted p-4 rounded-lg flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <FileText className="h-8 w-8 text-primary" />
+                      <div>
+                        <p className="font-medium">{selectedFile.name}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {(selectedFile.size / 1024).toFixed(2)} KB
+                        </p>
+                      </div>
                     </div>
+                    <Button
+                      onClick={handleUpload}
+                      disabled={uploading || validating || (validationResult ? !validationResult.valid : false)}
+                    >
+                      {uploading ? (
+                        <>
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          Processando...
+                        </>
+                      ) : (
+                        <>
+                          <Upload className="mr-2 h-4 w-4" />
+                          Processar
+                        </>
+                      )}
+                    </Button>
                   </div>
-                  <Button
-                    onClick={handleUpload}
-                    disabled={uploading}
-                  >
-                    {uploading ? (
-                      <>
-                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processando...
-                      </>
-                    ) : (
-                      <>
-                        <Upload className="mr-2 h-4 w-4" />
-                        Processar
-                      </>
-                    )}
-                  </Button>
+                  
+                  {/* Resultado da validação */}
+                  {validating && (
+                    <div className="bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg border border-blue-200 dark:border-blue-800 flex items-center gap-3">
+                      <Loader2 className="h-5 w-5 text-blue-600 animate-spin" />
+                      <p className="text-sm text-blue-900 dark:text-blue-100">Validando CPFs...</p>
+                    </div>
+                  )}
+                  
+                  {validationResult && validationResult.valid && (
+                    <div className="bg-green-50 dark:bg-green-950/20 p-4 rounded-lg border border-green-200 dark:border-green-800 flex items-center gap-3">
+                      <CheckCircle className="h-5 w-5 text-green-600" />
+                      <div>
+                        <p className="text-sm font-medium text-green-900 dark:text-green-100">
+                          Todos os {validationResult.validRows} CPFs são válidos!
+                        </p>
+                        <p className="text-xs text-green-700 dark:text-green-300 mt-1">
+                          Arquivo pronto para upload
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {validationResult && !validationResult.valid && (
+                    <div className="bg-red-50 dark:bg-red-950/20 p-4 rounded-lg border border-red-200 dark:border-red-800">
+                      <div className="flex items-center gap-3 mb-3">
+                        <AlertTriangle className="h-5 w-5 text-red-600" />
+                        <div>
+                          <p className="text-sm font-medium text-red-900 dark:text-red-100">
+                            {validationResult.invalidCPFs.length} CPF(s) inválido(s) encontrado(s)
+                          </p>
+                          <p className="text-xs text-red-700 dark:text-red-300 mt-1">
+                            Corrija os CPFs abaixo antes de fazer upload
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Lista de CPFs inválidos (máximo 10) */}
+                      <div className="mt-3 space-y-2 max-h-48 overflow-y-auto">
+                        {validationResult.invalidCPFs.slice(0, 10).map((item, idx) => (
+                          <div key={idx} className="bg-white dark:bg-gray-900 p-2 rounded text-xs">
+                            <span className="font-medium text-red-700 dark:text-red-400">Linha {item.line}:</span>
+                            <span className="text-gray-700 dark:text-gray-300 ml-2">{item.cpf || '(vazio)'}</span>
+                            <span className="text-gray-500 dark:text-gray-400 ml-2">- {item.reason}</span>
+                          </div>
+                        ))}
+                        {validationResult.invalidCPFs.length > 10 && (
+                          <p className="text-xs text-red-600 dark:text-red-400 text-center pt-2">
+                            ... e mais {validationResult.invalidCPFs.length - 10} erro(s)
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
 
