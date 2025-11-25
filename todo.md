@@ -368,3 +368,10 @@
 - [x] Adicionar endpoints Bureau (getConfig, updateConfig, getMetrics)
 - [x] Adicionar schemas completos para todos os tipos de resposta
 - [x] Documentar 12 endpoints no total (health + batch + models + drift + bureau)
+
+## Tutorial Interativo na Documentação API
+- [x] Criar seção "Getting Started" no spec OpenAPI
+- [x] Adicionar exemplos de código em cURL, Python e JavaScript
+- [x] Criar fluxo completo: autenticação → upload → status (polling) → download
+- [x] Adicionar troubleshooting comum (401, 429, 400, failed jobs)
+- [x] Adicionar emojis para melhor visualização
