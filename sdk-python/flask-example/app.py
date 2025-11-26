@@ -1,12 +1,14 @@
 """
-Aplicação Flask integrada com CredGuard SDK
-Exemplo completo de verificação de score de crédito
+Aplicação Flask integrada com CredGuard SDK + Autenticação
+Exemplo completo com Flask-Login
 """
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
 from werkzeug.utils import secure_filename
 from credguard import CredGuardClient, CredGuardAPIError, AuthenticationError, RateLimitError
 from config import config
+from models import User, Job, init_db
 import time
 
 # Inicializar aplicação Flask
@@ -17,14 +19,25 @@ env = os.getenv('FLASK_ENV', 'development')
 app.config.from_object(config[env])
 config[env].validate()
 
+# Inicializar banco de dados
+init_db()
+
+# Configurar Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Por favor, faça login para acessar esta página.'
+login_manager.login_message_category = 'warning'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.get_by_id(int(user_id))
+
 # Inicializar cliente CredGuard
 credguard_client = CredGuardClient(
     api_key=app.config['CREDGUARD_API_KEY'],
     base_url=app.config['CREDGUARD_BASE_URL']
 )
-
-# Armazenamento temporário de jobs (em produção, use Redis ou banco de dados)
-active_jobs = {}
 
 
 def allowed_file(filename):
@@ -33,6 +46,104 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 
+# ============================================================================
+# ROTAS DE AUTENTICAÇÃO
+# ============================================================================
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    """Página de registro de novo usuário."""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        email = request.form.get('email')
+        password = request.form.get('password')
+        confirm_password = request.form.get('confirm_password')
+        
+        # Validações
+        if not username or not email or not password:
+            flash('Todos os campos são obrigatórios', 'error')
+            return redirect(request.url)
+        
+        if len(username) < 3:
+            flash('Username deve ter pelo menos 3 caracteres', 'error')
+            return redirect(request.url)
+        
+        if len(password) < 6:
+            flash('Senha deve ter pelo menos 6 caracteres', 'error')
+            return redirect(request.url)
+        
+        if password != confirm_password:
+            flash('As senhas não coincidem', 'error')
+            return redirect(request.url)
+        
+        # Verificar se usuário já existe
+        if User.get_by_username(username):
+            flash('Username já está em uso', 'error')
+            return redirect(request.url)
+        
+        if User.get_by_email(email):
+            flash('Email já está cadastrado', 'error')
+            return redirect(request.url)
+        
+        # Criar usuário
+        user = User.create(username, email, password)
+        if user:
+            flash('Conta criada com sucesso! Faça login para continuar.', 'success')
+            return redirect(url_for('login'))
+        else:
+            flash('Erro ao criar conta. Tente novamente.', 'error')
+            return redirect(request.url)
+    
+    return render_template('register.html')
+
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    """Página de login."""
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+    
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        remember = request.form.get('remember') == 'on'
+        
+        if not username or not password:
+            flash('Username e senha são obrigatórios', 'error')
+            return redirect(request.url)
+        
+        user = User.get_by_username(username)
+        
+        if user and user.check_password(password):
+            login_user(user, remember=remember)
+            flash(f'Bem-vindo, {user.username}!', 'success')
+            
+            # Redirecionar para página solicitada ou index
+            next_page = request.args.get('next')
+            return redirect(next_page) if next_page else redirect(url_for('index'))
+        else:
+            flash('Username ou senha incorretos', 'error')
+            return redirect(request.url)
+    
+    return render_template('login.html')
+
+
+@app.route('/logout')
+@login_required
+def logout():
+    """Logout do usuário."""
+    logout_user()
+    flash('Logout realizado com sucesso', 'success')
+    return redirect(url_for('index'))
+
+
+# ============================================================================
+# ROTAS PRINCIPAIS (PROTEGIDAS)
+# ============================================================================
+
 @app.route('/')
 def index():
     """Página inicial."""
@@ -40,6 +151,7 @@ def index():
 
 
 @app.route('/upload', methods=['GET', 'POST'])
+@login_required
 def upload():
     """Página de upload de arquivo CSV."""
     if request.method == 'POST':
@@ -75,13 +187,14 @@ def upload():
                 product=product
             )
             
-            # Armazenar informações do job
-            active_jobs[job.job_id] = {
-                'filename': filename,
-                'product': product,
-                'status': job.status,
-                'created_at': time.time()
-            }
+            # Salvar job no banco de dados associado ao usuário
+            Job.create(
+                user_id=current_user.id,
+                job_id=job.job_id,
+                filename=filename,
+                product=product,
+                status=job.status
+            )
             
             flash(f'Upload realizado com sucesso! Job ID: {job.job_id}', 'success')
             return redirect(url_for('status', job_id=job.job_id))
@@ -101,15 +214,20 @@ def upload():
 
 
 @app.route('/status/<job_id>')
+@login_required
 def status(job_id):
     """Página de status do processamento."""
+    # Verificar se job pertence ao usuário
+    if not Job.belongs_to_user(job_id, current_user.id):
+        flash('Você não tem permissão para acessar este job', 'error')
+        return redirect(url_for('list_jobs'))
+    
     try:
         # Consultar status do job
         job = credguard_client.batch.get_status(job_id)
         
-        # Atualizar cache local
-        if job_id in active_jobs:
-            active_jobs[job_id]['status'] = job.status
+        # Atualizar status no banco de dados
+        Job.update_status(job_id, job.status)
         
         return render_template('status.html', job=job)
         
@@ -119,8 +237,14 @@ def status(job_id):
 
 
 @app.route('/results/<job_id>')
+@login_required
 def results(job_id):
     """Página de resultados do processamento."""
+    # Verificar se job pertence ao usuário
+    if not Job.belongs_to_user(job_id, current_user.id):
+        flash('Você não tem permissão para acessar este job', 'error')
+        return redirect(url_for('list_jobs'))
+    
     try:
         # Verificar se job está completo
         job = credguard_client.batch.get_status(job_id)
@@ -137,8 +261,14 @@ def results(job_id):
 
 
 @app.route('/download/<job_id>')
+@login_required
 def download(job_id):
     """Download do arquivo CSV com resultados."""
+    # Verificar se job pertence ao usuário
+    if not Job.belongs_to_user(job_id, current_user.id):
+        flash('Você não tem permissão para acessar este job', 'error')
+        return redirect(url_for('list_jobs'))
+    
     try:
         # Verificar se job está completo
         job = credguard_client.batch.get_status(job_id)
@@ -166,23 +296,39 @@ def download(job_id):
 
 
 @app.route('/jobs')
+@login_required
 def list_jobs():
-    """Lista todos os jobs ativos."""
-    jobs_list = []
+    """Lista todos os jobs do usuário."""
+    # Buscar jobs do usuário no banco de dados
+    user_jobs = Job.get_by_user(current_user.id)
     
-    for job_id, info in active_jobs.items():
+    # Atualizar status de cada job
+    jobs_list = []
+    for job_data in user_jobs:
         try:
-            job = credguard_client.batch.get_status(job_id)
+            job = credguard_client.batch.get_status(job_data['job_id'])
+            
+            # Atualizar status no banco
+            Job.update_status(job_data['job_id'], job.status)
+            
             jobs_list.append({
-                'job_id': job_id,
-                'filename': info['filename'],
-                'product': info['product'],
+                'job_id': job.job_id,
+                'filename': job_data['filename'],
+                'product': job_data['product'],
                 'status': job.status,
                 'processed_rows': job.processed_rows,
                 'total_rows': job.total_rows
             })
         except:
-            pass  # Ignorar jobs que não podem ser consultados
+            # Se não conseguir consultar, usar dados do banco
+            jobs_list.append({
+                'job_id': job_data['job_id'],
+                'filename': job_data['filename'],
+                'product': job_data['product'],
+                'status': job_data['status'],
+                'processed_rows': None,
+                'total_rows': None
+            })
     
     return render_template('jobs.html', jobs=jobs_list)
 

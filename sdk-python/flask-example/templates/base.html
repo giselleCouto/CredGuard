@@ -12,8 +12,14 @@
             <h1 class="logo">🛡️ CredGuard</h1>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Início</a></li>
-                <li><a href="{{ url_for('upload') }}">Upload</a></li>
-                <li><a href="{{ url_for('list_jobs') }}">Meus Jobs</a></li>
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('upload') }}">Upload</a></li>
+                    <li><a href="{{ url_for('list_jobs') }}">Meus Jobs</a></li>
+                    <li><a href="{{ url_for('logout') }}">Logout ({{ current_user.username }})</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('login') }}">Login</a></li>
+                    <li><a href="{{ url_for('register') }}">Registrar</a></li>
+                {% endif %}
             </ul>
         </div>
     </nav>

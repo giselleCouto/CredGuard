@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}Registro - CredGuard{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>📝 Criar Conta</h2>
+        <p class="auth-subtitle">Registre-se para começar a usar o CredGuard</p>
+
+        <form method="POST" class="auth-form">
+            <div class="form-group">
+                <label for="username">Username</label>
+                <input 
+                    type="text" 
+                    id="username" 
+                    name="username" 
+                    placeholder="Escolha um username (mín. 3 caracteres)"
+                    minlength="3"
+                    required
+                    autofocus
+                >
+                <small>Será usado para fazer login</small>
+            </div>
+
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    name="email" 
+                    placeholder="seu@email.com"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="password">Senha</label>
+                <input 
+                    type="password" 
+                    id="password" 
+                    name="password" 
+                    placeholder="Crie uma senha (mín. 6 caracteres)"
+                    minlength="6"
+                    required
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="confirm_password">Confirmar Senha</label>
+                <input 
+                    type="password" 
+                    id="confirm_password" 
+                    name="confirm_password" 
+                    placeholder="Digite a senha novamente"
+                    minlength="6"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block">Criar Conta</button>
+        </form>
+
+        <div class="auth-footer">
+            <p>Já tem uma conta? <a href="{{ url_for('login') }}">Faça login aqui</a></p>
+        </div>
+    </div>
+</div>
+{% endblock %}

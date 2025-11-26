@@ -22,6 +22,11 @@
         </div>
     </div>
 
-    <a href="{{ url_for('upload') }}" class="btn btn-primary">Começar Agora</a>
+    {% if current_user.is_authenticated %}
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">Começar Agora</a>
+    {% else %}
+        <a href="{{ url_for('register') }}" class="btn btn-primary">Criar Conta Grátis</a>
+        <a href="{{ url_for('login') }}" class="btn btn-secondary">Já tenho conta</a>
+    {% endif %}
 </div>
 {% endblock %}
