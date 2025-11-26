@@ -375,3 +375,12 @@
 - [x] Criar fluxo completo: autenticação → upload → status (polling) → download
 - [x] Adicionar troubleshooting comum (401, 429, 400, failed jobs)
 - [x] Adicionar emojis para melhor visualização
+
+## Geração de SDK Python Oficial
+- [ ] Instalar openapi-generator-cli
+- [ ] Gerar SDK a partir de /api/openapi.json
+- [ ] Criar setup.py para PyPI
+- [ ] Criar README.md com exemplos de uso
+- [ ] Criar requirements.txt
+- [ ] Testar SDK localmente
+- [ ] Documentar processo de publicação no PyPI
