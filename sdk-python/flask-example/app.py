@@ -36,13 +36,22 @@ def load_user(user_id):
     return User.get_by_id(int(user_id))
 
 # Configurar Flask-Limiter
+# Usa Redis se REDIS_URL estiver definido, caso contrário usa memória
+redis_url = os.getenv('REDIS_URL', 'memory://')
+
 limiter = Limiter(
     app=app,
     key_func=get_remote_address,
     default_limits=["200 per day", "50 per hour"],
-    storage_uri="memory://",
+    storage_uri=redis_url,
     strategy="fixed-window"
 )
+
+# Log do storage backend usado
+if redis_url.startswith('redis://'):
+    print(f"✅ Rate limiting usando Redis: {redis_url.split('@')[-1] if '@' in redis_url else redis_url}")
+else:
+    print("⚠️  Rate limiting usando memória (não recomendado para produção)")
 
 # Inicializar cliente CredGuard
 credguard_client = CredGuardClient(

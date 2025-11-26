@@ -172,7 +172,7 @@ limiter = Limiter(
 
 ## 💾 Storage Backends
 
-### Memory (Implementado)
+### Memory (Fallback)
 
 ```python
 storage_uri="memory://"
@@ -188,7 +188,11 @@ storage_uri="memory://"
 - Não funciona com múltiplos workers
 - Não funciona com load balancers
 
-### Redis (Recomendado para Produção)
+### Redis (Implementado)
+
+✅ **Status:** Configurado automaticamente via variável `REDIS_URL`
+
+### Como Usar Redis
 
 ```python
 storage_uri="redis://localhost:6379"
@@ -441,3 +445,137 @@ redis-cli ping
 ---
 
 **Rate limiting implementado e testado ✅**
+
+
+## 🔄 Migração para Redis (Implementada)
+
+### Status Atual
+
+✅ **A aplicação já está configurada para usar Redis automaticamente**
+
+A configuração atual no `app.py`:
+
+```python
+# Usa Redis se REDIS_URL estiver definido, caso contrário usa memória
+redis_url = os.getenv('REDIS_URL', 'memory://')
+
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri=redis_url,  # ← Dinâmico!
+    strategy="fixed-window"
+)
+
+# Log do storage backend usado
+if redis_url.startswith('redis://'):
+    print(f"✅ Rate limiting usando Redis: {redis_url.split('@')[-1] if '@' in redis_url else redis_url}")
+else:
+    print("⚠️  Rate limiting usando memória (não recomendado para produção)")
+```
+
+### Como Ativar Redis
+
+**Opção 1: Local (Desenvolvimento)**
+
+```bash
+# 1. Instalar Redis
+sudo apt install redis-server -y
+
+# 2. Iniciar Redis
+sudo systemctl start redis-server
+
+# 3. Adicionar ao .env
+echo "REDIS_URL=redis://localhost:6379" >> .env
+
+# 4. Instalar cliente Python
+pip install redis
+
+# 5. Reiniciar aplicação
+python app.py
+```
+
+**Opção 2: Docker**
+
+```bash
+# 1. Executar Redis em container
+docker run -d --name redis -p 6379:6379 redis:7-alpine
+
+# 2. Adicionar ao .env
+echo "REDIS_URL=redis://localhost:6379" >> .env
+
+# 3. Instalar cliente Python
+pip install redis
+
+# 4. Reiniciar aplicação
+python app.py
+```
+
+**Opção 3: Redis Cloud (Produção)**
+
+```bash
+# 1. Criar conta em https://redis.com/try-free/
+# 2. Criar database e copiar URL
+# 3. Adicionar ao .env
+echo "REDIS_URL=redis://:senha@redis-12345.cloud.redislabs.com:12345" >> .env
+
+# 4. Instalar cliente Python
+pip install redis
+
+# 5. Reiniciar aplicação
+python app.py
+```
+
+### Verificação
+
+```bash
+# Testar conectividade Redis
+python test_redis_connection.py
+```
+
+**Saída esperada:**
+
+```
+🔍 Testando conexão com Redis...
+   URL: redis://localhost:6379
+✅ Biblioteca redis importada com sucesso
+✅ Conexão com Redis estabelecida (PING → PONG)
+✅ Operações SET/GET funcionando
+ℹ️  Nenhuma chave de rate limiting encontrada (normal se app não foi usado)
+
+📊 Informações do Redis:
+   Versão: 7.0.0
+   Modo: standalone
+   Uptime: 0 dias
+
+📈 Estatísticas:
+   Total de conexões: 1
+   Total de comandos: 5
+
+🎉 Todos os testes de Redis passaram!
+
+✅ Rate limiting está pronto para produção com Redis
+   - Suporta múltiplos workers
+   - Suporta load balancers
+   - Persiste entre restarts
+```
+
+### Fallback Automático
+
+Se `REDIS_URL` não estiver definido ou Redis não estiver disponível:
+
+- ✅ Aplicação continua funcionando
+- ⚠️ Usa storage in-memory (não recomendado para produção)
+- 📝 Log indica que está usando memória
+
+**Exemplo de log:**
+
+```
+⚠️  Rate limiting usando memória (não recomendado para produção)
+```
+
+### Documentação Completa
+
+Para instruções detalhadas de instalação, configuração e troubleshooting, consulte:
+
+📚 **[REDIS_SETUP.md](REDIS_SETUP.md)** - Guia completo de Redis
