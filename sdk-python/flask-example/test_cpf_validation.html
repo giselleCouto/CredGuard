@@ -1,0 +1,410 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Teste de Validação de CPF - CredGuard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: white;
+            text-align: center;
+            margin-bottom: 30px;
+            font-size: 2rem;
+        }
+
+        .test-section {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+
+        h2 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 3px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .test-input {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        input {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+
+        button {
+            padding: 12px 24px;
+            background: #667eea;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+
+        button:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+        }
+
+        .result {
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 15px;
+            font-weight: 500;
+        }
+
+        .result.valid {
+            background: #d4edda;
+            border: 2px solid #28a745;
+            color: #155724;
+        }
+
+        .result.invalid {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+            color: #721c24;
+        }
+
+        .test-cases {
+            display: grid;
+            gap: 15px;
+        }
+
+        .test-case {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+            border-left: 4px solid #ddd;
+        }
+
+        .test-case.passed {
+            border-left-color: #28a745;
+            background: #d4edda;
+        }
+
+        .test-case.failed {
+            border-left-color: #dc3545;
+            background: #f8d7da;
+        }
+
+        .test-info {
+            flex: 1;
+        }
+
+        .test-cpf {
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            font-size: 1.1rem;
+        }
+
+        .test-description {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .test-status {
+            font-size: 1.5rem;
+        }
+
+        .summary {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .summary-card {
+            text-align: center;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+
+        .summary-card.total {
+            background: #e7f3ff;
+            border: 2px solid #007bff;
+        }
+
+        .summary-card.passed {
+            background: #d4edda;
+            border: 2px solid #28a745;
+        }
+
+        .summary-card.failed {
+            background: #f8d7da;
+            border: 2px solid #dc3545;
+        }
+
+        .summary-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+        }
+
+        .run-all-btn {
+            width: 100%;
+            padding: 15px;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            background: #28a745;
+        }
+
+        .run-all-btn:hover {
+            background: #218838;
+        }
+
+        .algorithm-box {
+            background: #f8f9fa;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .algorithm-box h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+
+        .algorithm-box pre {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 0.9rem;
+        }
+
+        .code {
+            font-family: 'Courier New', monospace;
+            background: #f8f9fa;
+            padding: 2px 6px;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔐 Teste de Validação de CPF</h1>
+
+        <!-- Teste Manual -->
+        <div class="test-section">
+            <h2>🧪 Teste Manual</h2>
+            <p style="margin-bottom: 15px; color: #666;">Digite um CPF para testar a validação:</p>
+            <div class="test-input">
+                <input type="text" id="manualCPF" placeholder="Digite um CPF (ex: 12345678909 ou 123.456.789-09)" maxlength="14">
+                <button onclick="testManualCPF()">Validar</button>
+            </div>
+            <div id="manualResult"></div>
+        </div>
+
+        <!-- Algoritmo -->
+        <div class="test-section">
+            <h2>📐 Algoritmo de Validação</h2>
+            <div class="algorithm-box">
+                <h3>Passo 1: Calcular Primeiro Dígito Verificador</h3>
+                <pre>
+Dígitos:  1   2   3   4   5   6   7   8   9
+Peso:    10   9   8   7   6   5   4   3   2
+Produto: 10  18  24  28  30  30  28  24  18
+
+Soma = 210
+Resto = 210 % 11 = 1
+Dígito 1 = 1 < 2 ? 0 : 11 - 1 = 0</pre>
+            </div>
+            <div class="algorithm-box">
+                <h3>Passo 2: Calcular Segundo Dígito Verificador</h3>
+                <pre>
+Dígitos:  1   2   3   4   5   6   7   8   9   0
+Peso:    11  10   9   8   7   6   5   4   3   2
+Produto: 11  20  27  32  35  36  35  32  27   0
+
+Soma = 255
+Resto = 255 % 11 = 2
+Dígito 2 = 2 < 2 ? 0 : 11 - 2 = 9</pre>
+            </div>
+            <p style="color: #28a745; font-weight: bold; text-align: center; font-size: 1.2rem;">
+                ✅ CPF Válido: 123.456.789-09
+            </p>
+        </div>
+
+        <!-- Testes Automatizados -->
+        <div class="test-section">
+            <h2>🤖 Testes Automatizados</h2>
+            <button class="run-all-btn" onclick="runAllTests()">▶️ Executar Todos os Testes</button>
+            <div class="summary" id="summary" style="display: none;">
+                <div class="summary-card total">
+                    <div class="summary-number" id="totalTests">0</div>
+                    <div class="summary-label">Total</div>
+                </div>
+                <div class="summary-card passed">
+                    <div class="summary-number" id="passedTests">0</div>
+                    <div class="summary-label">Passou</div>
+                </div>
+                <div class="summary-card failed">
+                    <div class="summary-number" id="failedTests">0</div>
+                    <div class="summary-label">Falhou</div>
+                </div>
+            </div>
+            <div class="test-cases" id="testCases"></div>
+        </div>
+    </div>
+
+    <script src="static/csv-validator.js"></script>
+    <script>
+        const validator = new CSVValidator();
+
+        // Casos de teste
+        const testCases = [
+            // CPFs válidos
+            { cpf: '12345678909', expected: true, description: 'CPF válido (sem formatação)' },
+            { cpf: '123.456.789-09', expected: true, description: 'CPF válido (com formatação)' },
+            { cpf: '11144477735', expected: true, description: 'CPF válido (outro exemplo)' },
+            { cpf: '52998224725', expected: true, description: 'CPF válido (mais um exemplo)' },
+            
+            // CPFs inválidos - dígitos verificadores incorretos
+            { cpf: '12345678900', expected: false, description: 'Dígito verificador incorreto' },
+            { cpf: '12345678901', expected: false, description: 'Dígito verificador incorreto' },
+            { cpf: '11144477736', expected: false, description: 'Segundo dígito incorreto' },
+            
+            // CPFs inválidos - formato
+            { cpf: '123456789', expected: false, description: 'Apenas 9 dígitos' },
+            { cpf: '1234567890123', expected: false, description: 'Mais de 11 dígitos' },
+            { cpf: '', expected: false, description: 'CPF vazio' },
+            
+            // CPFs inválidos - sequência
+            { cpf: '11111111111', expected: false, description: 'Sequência de 1s' },
+            { cpf: '00000000000', expected: false, description: 'Sequência de 0s' },
+            { cpf: '99999999999', expected: false, description: 'Sequência de 9s' },
+            
+            // Casos especiais
+            { cpf: '000.000.001-91', expected: true, description: 'CPF válido com zeros à esquerda' },
+            { cpf: '123-456-789-09', expected: true, description: 'Formatação alternativa (aceita)' }
+        ];
+
+        function testManualCPF() {
+            const cpf = document.getElementById('manualCPF').value;
+            const resultDiv = document.getElementById('manualResult');
+            
+            if (!cpf) {
+                resultDiv.innerHTML = '<div class="result invalid">❌ Por favor, digite um CPF</div>';
+                return;
+            }
+            
+            const result = validator.validateCPF(cpf, 1);
+            
+            if (result.valid) {
+                const cleanCPF = cpf.replace(/\D/g, '');
+                const formatted = formatCPF(cleanCPF);
+                resultDiv.innerHTML = `
+                    <div class="result valid">
+                        ✅ CPF Válido!<br>
+                        <strong>Formatado:</strong> ${formatted}<br>
+                        <strong>Sem formatação:</strong> ${cleanCPF}
+                    </div>
+                `;
+            } else {
+                resultDiv.innerHTML = `
+                    <div class="result invalid">
+                        ❌ CPF Inválido<br>
+                        <strong>Erro:</strong> ${result.errors.join(', ')}
+                    </div>
+                `;
+            }
+        }
+
+        function formatCPF(cpf) {
+            return cpf.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+        }
+
+        function runAllTests() {
+            const testCasesDiv = document.getElementById('testCases');
+            const summaryDiv = document.getElementById('summary');
+            testCasesDiv.innerHTML = '';
+            
+            let passed = 0;
+            let failed = 0;
+            
+            testCases.forEach((testCase, index) => {
+                const result = validator.validateCPF(testCase.cpf, 1);
+                const isPassed = result.valid === testCase.expected;
+                
+                if (isPassed) {
+                    passed++;
+                } else {
+                    failed++;
+                }
+                
+                const testDiv = document.createElement('div');
+                testDiv.className = `test-case ${isPassed ? 'passed' : 'failed'}`;
+                testDiv.innerHTML = `
+                    <div class="test-info">
+                        <div class="test-cpf">${testCase.cpf || '(vazio)'}</div>
+                        <div class="test-description">${testCase.description}</div>
+                        ${!isPassed ? `<div style="color: #dc3545; margin-top: 5px; font-size: 0.85rem;">Esperado: ${testCase.expected ? 'Válido' : 'Inválido'}, Obtido: ${result.valid ? 'Válido' : 'Inválido'}</div>` : ''}
+                    </div>
+                    <div class="test-status">${isPassed ? '✅' : '❌'}</div>
+                `;
+                testCasesDiv.appendChild(testDiv);
+            });
+            
+            // Atualizar resumo
+            document.getElementById('totalTests').textContent = testCases.length;
+            document.getElementById('passedTests').textContent = passed;
+            document.getElementById('failedTests').textContent = failed;
+            summaryDiv.style.display = 'grid';
+            
+            // Scroll para o resumo
+            summaryDiv.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        // Permitir Enter no input
+        document.getElementById('manualCPF').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                testManualCPF();
+            }
+        });
+    </script>
+</body>
+</html>
