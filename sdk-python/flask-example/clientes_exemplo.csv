@@ -1,0 +1,11 @@
+cpf,nome,renda_mensal,idade,score_bureau,historico_pagamentos,divida_total,tempo_emprego_meses
+12345678901,João Silva,5000.00,35,720,bom,15000.00,48
+98765432109,Maria Santos,3500.00,28,650,regular,8000.00,24
+11122233344,Pedro Oliveira,8000.00,42,780,excelente,5000.00,120
+55566677788,Ana Costa,2500.00,23,580,ruim,12000.00,12
+99988877766,Carlos Souza,6500.00,38,700,bom,20000.00,60
+44433322211,Juliana Lima,4200.00,31,690,bom,10000.00,36
+77788899900,Roberto Alves,9500.00,45,810,excelente,3000.00,180
+22233344455,Fernanda Rocha,3000.00,26,620,regular,15000.00,18
+66677788899,Lucas Martins,7200.00,40,750,bom,8000.00,84
+33344455566,Patricia Ferreira,4800.00,33,680,regular,18000.00,42
