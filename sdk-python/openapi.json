@@ -1,0 +1,15 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "CredGuard API",
+    "version": "1.0.0",
+    "description": "API REST para análise de crédito em lote com modelos de Machine Learning"
+  },
+  "servers": [
+    {
+      "url": "https://credguard.com",
+      "description": "Produção"
+    }
+  ],
+  "paths": {}
+}
