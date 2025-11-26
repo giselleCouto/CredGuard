@@ -652,3 +652,163 @@ footer {
         margin: 0 1rem;
     }
 }
+
+    text-decoration: underline;
+}
+
+/* ============================================
+   VALIDAÇÃO DE CSV
+   ============================================ */
+
+.validation-result {
+    margin: 20px 0;
+    padding: 20px;
+    border-radius: 8px;
+    border: 2px solid;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.validation-loading {
+    background-color: #f0f9ff;
+    border-color: #3b82f6;
+}
+
+.validation-success {
+    background-color: #f0fdf4;
+    border-color: #22c55e;
+}
+
+.validation-error {
+    background-color: #fef2f2;
+    border-color: #ef4444;
+}
+
+.validation-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+
+.validation-icon {
+    font-size: 24px;
+    line-height: 1;
+}
+
+.validation-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.validation-body {
+    color: #4b5563;
+    line-height: 1.6;
+}
+
+.validation-body p {
+    margin: 8px 0;
+}
+
+.validation-body ul {
+    margin: 8px 0;
+    padding-left: 24px;
+}
+
+.validation-body li {
+    margin: 4px 0;
+}
+
+.validation-success-msg {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #dcfce7;
+    border-radius: 6px;
+    font-weight: 500;
+    color: #166534;
+    text-align: center;
+}
+
+.validation-help {
+    margin-top: 12px;
+    padding: 12px;
+    background-color: #fef3c7;
+    border-radius: 6px;
+    color: #92400e;
+}
+
+.validation-help a {
+    color: #b45309;
+    text-decoration: underline;
+    font-weight: 500;
+}
+
+.validation-help a:hover {
+    color: #92400e;
+}
+
+/* Loading spinner para validação */
+.validation-loading .validation-icon {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Melhorias no formulário de upload */
+.upload-form .form-group small a {
+    color: #3b82f6;
+    text-decoration: underline;
+}
+
+.upload-form .form-group small a:hover {
+    color: #2563eb;
+}
+
+/* Botão desabilitado durante validação */
+.btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Responsividade para validação */
+@media (max-width: 768px) {
+    .validation-result {
+        padding: 16px;
+    }
+    
+    .validation-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 8px;
+    }
+    
+    .validation-icon {
+        font-size: 20px;
+    }
+    
+    .validation-title {
+        font-size: 16px;
+    }
+    
+    .validation-body {
+        font-size: 14px;
+    }
+}

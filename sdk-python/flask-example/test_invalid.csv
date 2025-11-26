@@ -1,0 +1,4 @@
+cpf,nome,renda_mensal,idade,score_bureau,historico_pagamentos,divida_total,tempo_emprego_meses
+123.456.789-01,João Silva,R$ 5.000,35,900,ótimo,15000.00,48
+98765432,Maria Santos,3500,17,650,regular,8000.00,-5
+11122233344,Pedro Oliveira,abc,42,780,excelente,5000.00,120

@@ -7,38 +7,160 @@
     <h2>Upload de Arquivo CSV</h2>
     <p>Envie um arquivo CSV com os dados dos clientes para calcular os scores de crédito.</p>
 
-    <form method="POST" enctype="multipart/form-data" class="upload-form">
+    <form method="POST" enctype="multipart/form-data" class="upload-form" id="uploadForm">
         <div class="form-group">
             <label for="file">Selecione o arquivo CSV:</label>
             <input type="file" id="file" name="file" accept=".csv" required>
-            <small>Tamanho máximo: 16MB</small>
+            <small>Tamanho máximo: 16MB | <a href="{{ url_for('static', filename='../clientes_exemplo.csv') }}" download>Baixar CSV de exemplo</a></small>
         </div>
+
+        <!-- Área de validação -->
+        <div id="validationResult" class="validation-result" style="display: none;"></div>
 
         <div class="form-group">
             <label for="product">Tipo de Produto:</label>
             <select id="product" name="product" required>
                 <option value="CARTAO">Cartão de Crédito</option>
-                <option value="CARNE">Carnê</option>
                 <option value="EMPRESTIMO">Empréstimo Pessoal</option>
+                <option value="FINANCIAMENTO">Financiamento</option>
+                <option value="CONSIGNADO">Empréstimo Consignado</option>
             </select>
         </div>
 
-        <button type="submit" class="btn btn-primary">Enviar e Processar</button>
+        <button type="submit" class="btn btn-primary" id="submitBtn">Enviar e Processar</button>
     </form>
 
     <div class="info-box">
         <h3>📋 Formato do CSV</h3>
         <p>O arquivo deve conter as seguintes colunas obrigatórias:</p>
         <ul>
-            <li><strong>cpf</strong> - CPF do cliente (formato: XXX.XXX.XXX-XX)</li>
-            <li><strong>renda_mensal</strong> - Renda mensal em reais</li>
-            <li><strong>idade</strong> - Idade do cliente</li>
-            <li><strong>tempo_emprego_meses</strong> - Tempo no emprego atual</li>
-            <li>... e outras 100+ features (veja documentação completa)</li>
+            <li><strong>cpf</strong> - 11 dígitos, sem formatação (ex: 12345678901)</li>
+            <li><strong>nome</strong> - Nome completo do cliente</li>
+            <li><strong>renda_mensal</strong> - Decimal com ponto (ex: 5000.00)</li>
+            <li><strong>idade</strong> - Entre 18 e 100 anos</li>
+            <li><strong>score_bureau</strong> - Entre 300 e 850</li>
+            <li><strong>historico_pagamentos</strong> - excelente, bom, regular ou ruim</li>
+            <li><strong>divida_total</strong> - Decimal com ponto (ex: 15000.00)</li>
+            <li><strong>tempo_emprego_meses</strong> - Número inteiro (meses)</li>
         </ul>
-        <a href="https://credguard.manus.space/api/docs" target="_blank" class="btn btn-secondary">
-            Ver Documentação Completa
-        </a>
+        <p>
+            <a href="/static/../CSV_FORMAT.md" target="_blank" class="btn btn-secondary">
+                📖 Ver Documentação Completa
+            </a>
+        </p>
     </div>
 </div>
+
+<script src="{{ url_for('static', filename='csv-validator.js') }}"></script>
+<script>
+    // Inicializar validador
+    const validator = new CSVValidator();
+    const fileInput = document.getElementById('file');
+    const validationResult = document.getElementById('validationResult');
+    const submitBtn = document.getElementById('submitBtn');
+    const uploadForm = document.getElementById('uploadForm');
+    
+    let isValid = false;
+
+    // Validar arquivo quando selecionado
+    fileInput.addEventListener('change', async function(e) {
+        const file = e.target.files[0];
+        
+        if (!file) {
+            validationResult.style.display = 'none';
+            isValid = false;
+            return;
+        }
+
+        // Mostrar loading
+        validationResult.style.display = 'block';
+        validationResult.className = 'validation-result validation-loading';
+        validationResult.innerHTML = `
+            <div class="validation-header">
+                <span class="validation-icon">⏳</span>
+                <span class="validation-title">Validando arquivo...</span>
+            </div>
+        `;
+
+        // Validar arquivo
+        try {
+            const result = await validator.validateFile(file);
+            isValid = result.valid;
+            
+            // Mostrar resultado
+            if (result.valid) {
+                validationResult.className = 'validation-result validation-success';
+                validationResult.innerHTML = `
+                    <div class="validation-header">
+                        <span class="validation-icon">✅</span>
+                        <span class="validation-title">Arquivo válido!</span>
+                    </div>
+                    <div class="validation-body">
+                        <p><strong>Estatísticas:</strong></p>
+                        <ul>
+                            <li>Total de registros: ${result.stats.rows}</li>
+                            <li>Registros válidos: ${result.stats.validRows}</li>
+                            <li>Tamanho: ${validator.formatFileSize(file.size)}</li>
+                        </ul>
+                        ${result.warnings.length > 0 ? `
+                            <p><strong>⚠️ Avisos:</strong></p>
+                            <ul>
+                                ${result.warnings.map(w => `<li>${w}</li>`).join('')}
+                            </ul>
+                        ` : ''}
+                        <p class="validation-success-msg">✨ Pronto para enviar!</p>
+                    </div>
+                `;
+            } else {
+                validationResult.className = 'validation-result validation-error';
+                validationResult.innerHTML = `
+                    <div class="validation-header">
+                        <span class="validation-icon">❌</span>
+                        <span class="validation-title">Arquivo inválido</span>
+                    </div>
+                    <div class="validation-body">
+                        <p><strong>Erros encontrados:</strong></p>
+                        <ul>
+                            ${result.errors.map(e => `<li>${e}</li>`).join('')}
+                        </ul>
+                        <p class="validation-help">
+                            💡 <strong>Dica:</strong> Use o <a href="{{ url_for('static', filename='../clientes_exemplo.csv') }}" download>CSV de exemplo</a> como referência ou consulte a <a href="/static/../CSV_FORMAT.md" target="_blank">documentação completa</a>.
+                        </p>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            isValid = false;
+            validationResult.className = 'validation-result validation-error';
+            validationResult.innerHTML = `
+                <div class="validation-header">
+                    <span class="validation-icon">❌</span>
+                    <span class="validation-title">Erro ao validar arquivo</span>
+                </div>
+                <div class="validation-body">
+                    <p>${error.message}</p>
+                </div>
+            `;
+        }
+    });
+
+    // Prevenir submit se arquivo inválido
+    uploadForm.addEventListener('submit', function(e) {
+        if (!fileInput.files[0]) {
+            e.preventDefault();
+            alert('Por favor, selecione um arquivo CSV');
+            return false;
+        }
+
+        if (!isValid) {
+            e.preventDefault();
+            alert('O arquivo CSV contém erros. Por favor, corrija os erros antes de enviar.');
+            return false;
+        }
+
+        // Desabilitar botão para evitar duplo submit
+        submitBtn.disabled = true;
+        submitBtn.textContent = 'Enviando...';
+    });
+</script>
 {% endblock %}
