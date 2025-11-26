@@ -5,6 +5,8 @@ Exemplo completo com Flask-Login
 import os
 from flask import Flask, render_template, request, redirect, url_for, flash, send_file
 from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from flask_limiter import Limiter
+from flask_limiter.util import get_remote_address
 from werkzeug.utils import secure_filename
 from credguard import CredGuardClient, CredGuardAPIError, AuthenticationError, RateLimitError
 from config import config
@@ -33,6 +35,15 @@ login_manager.login_message_category = 'warning'
 def load_user(user_id):
     return User.get_by_id(int(user_id))
 
+# Configurar Flask-Limiter
+limiter = Limiter(
+    app=app,
+    key_func=get_remote_address,
+    default_limits=["200 per day", "50 per hour"],
+    storage_uri="memory://",
+    strategy="fixed-window"
+)
+
 # Inicializar cliente CredGuard
 credguard_client = CredGuardClient(
     api_key=app.config['CREDGUARD_API_KEY'],
@@ -51,6 +62,7 @@ def allowed_file(filename):
 # ============================================================================
 
 @app.route('/register', methods=['GET', 'POST'])
+@limiter.limit("5 per minute", methods=["POST"])
 def register():
     """Página de registro de novo usuário."""
     if current_user.is_authenticated:
@@ -101,6 +113,7 @@ def register():
 
 
 @app.route('/login', methods=['GET', 'POST'])
+@limiter.limit("10 per minute", methods=["POST"])
 def login():
     """Página de login."""
     if current_user.is_authenticated:
@@ -338,6 +351,31 @@ def request_entity_too_large(error):
     """Handler para arquivo muito grande."""
     flash('Arquivo muito grande. Tamanho máximo: 16MB', 'error')
     return redirect(url_for('upload'))
+
+
+@app.errorhandler(429)
+def ratelimit_handler(e):
+    """Handler customizado para rate limit excedido."""
+    # Extrair informações do erro
+    retry_after = getattr(e.description, 'retry_after', None)
+    
+    # Mensagem amigável baseada na rota
+    if 'login' in request.path:
+        message = 'Muitas tentativas de login. Por favor, aguarde 1 minuto e tente novamente.'
+    elif 'register' in request.path:
+        message = 'Muitas tentativas de registro. Por favor, aguarde 1 minuto e tente novamente.'
+    else:
+        message = 'Muitas requisições. Por favor, aguarde alguns instantes e tente novamente.'
+    
+    flash(message, 'error')
+    
+    # Redirecionar para a página apropriada
+    if 'login' in request.path:
+        return render_template('login.html'), 429
+    elif 'register' in request.path:
+        return render_template('register.html'), 429
+    else:
+        return render_template('index.html'), 429
 
 
 if __name__ == '__main__':
