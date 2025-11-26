@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block title %}Resultados - CredGuard{% endblock %}
+
+{% block content %}
+<div class="results-container">
+    <h2>Resultados do Processamento</h2>
+    
+    <div class="summary-cards">
+        <div class="summary-card">
+            <h3>{{ job.processed_rows }}</h3>
+            <p>Clientes Processados</p>
+        </div>
+        <div class="summary-card">
+            <h3>{{ job.excluded_rows }}</h3>
+            <p>Excluídos (Regras de Negócio)</p>
+        </div>
+        <div class="summary-card">
+            <h3>{{ job.product }}</h3>
+            <p>Tipo de Produto</p>
+        </div>
+    </div>
+
+    <div class="download-section">
+        <h3>📥 Download de Resultados</h3>
+        <p>O arquivo CSV contém os seguintes campos:</p>
+        <ul>
+            <li><strong>cpf</strong> - CPF do cliente</li>
+            <li><strong>score</strong> - Score de crédito (0-1000)</li>
+            <li><strong>risk_class</strong> - Classe de risco (R1-R10)</li>
+            <li><strong>credit_limit</strong> - Limite de crédito sugerido</li>
+            <li><strong>probability</strong> - Probabilidade de inadimplência</li>
+            <li><strong>score_interno</strong> - Score do modelo interno</li>
+            <li><strong>score_serasa</strong> - Score do bureau (se ativo)</li>
+            <li><strong>pendencias</strong> - Número de pendências</li>
+            <li><strong>protestos</strong> - Número de protestos</li>
+        </ul>
+        
+        <a href="{{ url_for('download', job_id=job.job_id) }}" class="btn btn-success btn-large">
+            📥 Baixar Resultados (CSV)
+        </a>
+    </div>
+
+    <div class="actions">
+        <a href="{{ url_for('upload') }}" class="btn btn-primary">Novo Upload</a>
+        <a href="{{ url_for('list_jobs') }}" class="btn btn-secondary">Ver Todos os Jobs</a>
+    </div>
+</div>
+{% endblock %}

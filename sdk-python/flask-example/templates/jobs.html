@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+
+{% block title %}Meus Jobs - CredGuard{% endblock %}
+
+{% block content %}
+<div class="jobs-container">
+    <h2>Meus Jobs de Processamento</h2>
+    
+    {% if jobs %}
+        <table class="jobs-table">
+            <thead>
+                <tr>
+                    <th>Job ID</th>
+                    <th>Arquivo</th>
+                    <th>Produto</th>
+                    <th>Status</th>
+                    <th>Progresso</th>
+                    <th>Ações</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for job in jobs %}
+                <tr>
+                    <td><code>{{ job.job_id[:8] }}...</code></td>
+                    <td>{{ job.filename }}</td>
+                    <td>{{ job.product }}</td>
+                    <td><span class="badge badge-{{ job.status }}">{{ job.status }}</span></td>
+                    <td>
+                        {% if job.total_rows %}
+                            {{ job.processed_rows or 0 }} / {{ job.total_rows }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="{{ url_for('status', job_id=job.job_id) }}" class="btn btn-sm">
+                            Ver Status
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p class="empty-state">Nenhum job encontrado. <a href="{{ url_for('upload') }}">Faça seu primeiro upload</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

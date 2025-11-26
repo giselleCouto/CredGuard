@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+
+{% block title %}Upload - CredGuard{% endblock %}
+
+{% block content %}
+<div class="upload-container">
+    <h2>Upload de Arquivo CSV</h2>
+    <p>Envie um arquivo CSV com os dados dos clientes para calcular os scores de crédito.</p>
+
+    <form method="POST" enctype="multipart/form-data" class="upload-form">
+        <div class="form-group">
+            <label for="file">Selecione o arquivo CSV:</label>
+            <input type="file" id="file" name="file" accept=".csv" required>
+            <small>Tamanho máximo: 16MB</small>
+        </div>
+
+        <div class="form-group">
+            <label for="product">Tipo de Produto:</label>
+            <select id="product" name="product" required>
+                <option value="CARTAO">Cartão de Crédito</option>
+                <option value="CARNE">Carnê</option>
+                <option value="EMPRESTIMO">Empréstimo Pessoal</option>
+            </select>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Enviar e Processar</button>
+    </form>
+
+    <div class="info-box">
+        <h3>📋 Formato do CSV</h3>
+        <p>O arquivo deve conter as seguintes colunas obrigatórias:</p>
+        <ul>
+            <li><strong>cpf</strong> - CPF do cliente (formato: XXX.XXX.XXX-XX)</li>
+            <li><strong>renda_mensal</strong> - Renda mensal em reais</li>
+            <li><strong>idade</strong> - Idade do cliente</li>
+            <li><strong>tempo_emprego_meses</strong> - Tempo no emprego atual</li>
+            <li>... e outras 100+ features (veja documentação completa)</li>
+        </ul>
+        <a href="https://credguard.manus.space/api/docs" target="_blank" class="btn btn-secondary">
+            Ver Documentação Completa
+        </a>
+    </div>
+</div>
+{% endblock %}

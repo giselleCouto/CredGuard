@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Status - CredGuard{% endblock %}
+
+{% block content %}
+<div class="status-container">
+    <h2>Status do Processamento</h2>
+    
+    <div class="job-info">
+        <p><strong>Job ID:</strong> {{ job.job_id }}</p>
+        <p><strong>Arquivo:</strong> {{ job.file_name }}</p>
+        <p><strong>Produto:</strong> {{ job.product }}</p>
+        <p><strong>Status:</strong> 
+            <span class="badge badge-{{ job.status }}">{{ job.status }}</span>
+        </p>
+    </div>
+
+    {% if job.is_processing %}
+        <div class="progress-container">
+            <h3>⏳ Processando...</h3>
+            {% if job.total_rows %}
+                <p>Progresso: {{ job.processed_rows or 0 }} / {{ job.total_rows }}</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: {{ ((job.processed_rows or 0) / job.total_rows * 100) }}%"></div>
+                </div>
+            {% endif %}
+            <p class="refresh-info">Esta página atualiza automaticamente a cada 5 segundos.</p>
+            <meta http-equiv="refresh" content="5">
+        </div>
+    {% elif job.is_complete %}
+        <div class="success-container">
+            <h3>✅ Processamento Concluído!</h3>
+            <p><strong>Total processado:</strong> {{ job.processed_rows }}</p>
+            <p><strong>Excluídos:</strong> {{ job.excluded_rows }}</p>
+            
+            <div class="action-buttons">
+                <a href="{{ url_for('results', job_id=job.job_id) }}" class="btn btn-primary">
+                    Ver Resultados
+                </a>
+                <a href="{{ url_for('download', job_id=job.job_id) }}" class="btn btn-success">
+                    📥 Baixar CSV
+                </a>
+            </div>
+        </div>
+    {% elif job.is_failed %}
+        <div class="error-container">
+            <h3>❌ Processamento Falhou</h3>
+            <p><strong>Erro:</strong> {{ job.error_message }}</p>
+            <a href="{{ url_for('upload') }}" class="btn btn-primary">Tentar Novamente</a>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

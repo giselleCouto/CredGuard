@@ -1,0 +1,27 @@
+{% extends "base.html" %}
+
+{% block title %}Início - CredGuard{% endblock %}
+
+{% block content %}
+<div class="hero">
+    <h2>Bem-vindo ao CredGuard Flask App</h2>
+    <p>Verifique o score de crédito dos seus clientes de forma rápida e segura.</p>
+    
+    <div class="features">
+        <div class="feature-card">
+            <h3>📤 Upload em Lote</h3>
+            <p>Envie arquivo CSV com dados de múltiplos clientes</p>
+        </div>
+        <div class="feature-card">
+            <h3>🤖 Machine Learning</h3>
+            <p>Scores calculados por modelos treinados</p>
+        </div>
+        <div class="feature-card">
+            <h3>📊 Resultados Detalhados</h3>
+            <p>Baixe CSV com scores e recomendações</p>
+        </div>
+    </div>
+
+    <a href="{{ url_for('upload') }}" class="btn btn-primary">Começar Agora</a>
+</div>
+{% endblock %}
