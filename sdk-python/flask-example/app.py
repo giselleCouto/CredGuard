@@ -317,6 +317,13 @@ def download(job_id):
         return redirect(url_for('index'))
 
 
+@app.route('/dashboard')
+@login_required
+def dashboard():
+    """Dashboard com estatísticas de validação."""
+    return render_template('dashboard.html')
+
+
 @app.route('/jobs')
 @login_required
 def list_jobs():
