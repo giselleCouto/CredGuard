@@ -1,0 +1,274 @@
+{% extends "base.html" %}
+
+{% block title %}Preços - CredGuard{% endblock %}
+
+{% block content %}
+<div class="pricing-page">
+    <div class="pricing-header">
+        <h1>Escolha o Plano Ideal para Você</h1>
+        <p>Análise de crédito profissional com validação completa de CPF</p>
+    </div>
+
+    {% if not stripe_configured %}
+    <div class="alert alert-warning">
+        <strong>⚠️ Stripe não configurado</strong><br>
+        Configure as chaves do Stripe no arquivo .env para habilitar pagamentos.
+        <a href="/docs/stripe-setup" target="_blank">Ver documentação</a>
+    </div>
+    {% endif %}
+
+    <div class="pricing-cards">
+        {% for product_id, product in products.items() %}
+        <div class="pricing-card {% if product_id == 'professional' %}featured{% endif %}">
+            {% if product_id == 'professional' %}
+            <div class="featured-badge">Mais Popular</div>
+            {% endif %}
+            
+            <h2>{{ product.name }}</h2>
+            <p class="description">{{ product.description }}</p>
+            
+            <div class="price">
+                <span class="amount">{{ product.price_formatted }}</span>
+                <span class="period">/mês</span>
+            </div>
+            
+            <ul class="features">
+                {% for feature in product.features %}
+                <li>✓ {{ feature }}</li>
+                {% endfor %}
+            </ul>
+            
+            {% if stripe_configured %}
+            <form action="{{ url_for('create_checkout') }}" method="POST">
+                <input type="hidden" name="product_id" value="{{ product_id }}">
+                <input type="hidden" name="mode" value="subscription">
+                <button type="submit" class="btn-subscribe {% if product_id == 'professional' %}btn-featured{% endif %}">
+                    Assinar Agora
+                </button>
+            </form>
+            {% else %}
+            <button class="btn-subscribe" disabled>
+                Indisponível
+            </button>
+            {% endif %}
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="pricing-faq">
+        <h2>Perguntas Frequentes</h2>
+        
+        <div class="faq-item">
+            <h3>💳 Quais formas de pagamento são aceitas?</h3>
+            <p>Aceitamos cartões de crédito (Visa, Mastercard, American Express) processados de forma segura pelo Stripe.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>🔄 Posso cancelar a qualquer momento?</h3>
+            <p>Sim! Você pode cancelar sua assinatura a qualquer momento sem multas. O acesso continuará até o final do período pago.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>📊 O que acontece se eu exceder o limite?</h3>
+            <p>Você receberá uma notificação e poderá fazer upgrade para um plano superior ou aguardar a renovação mensal.</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>🔒 Meus dados estão seguros?</h3>
+            <p>Sim! Usamos o Stripe para processar pagamentos, que é certificado PCI DSS Level 1 (o mais alto nível de segurança).</p>
+        </div>
+
+        <div class="faq-item">
+            <h3>🎁 Existe período de teste gratuito?</h3>
+            <p>Entre em contato para solicitar um período de teste gratuito de 7 dias em qualquer plano.</p>
+        </div>
+    </div>
+</div>
+
+<style>
+.pricing-page {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+}
+
+.pricing-header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.pricing-header h1 {
+    font-size: 2.5rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-header p {
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+.pricing-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-bottom: 4rem;
+}
+
+.pricing-card {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 12px;
+    padding: 2rem;
+    position: relative;
+    transition: all 0.3s ease;
+}
+
+.pricing-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+}
+
+.pricing-card.featured {
+    border-color: #3498db;
+    box-shadow: 0 5px 20px rgba(52, 152, 219, 0.2);
+}
+
+.featured-badge {
+    position: absolute;
+    top: -12px;
+    right: 20px;
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+    padding: 0.4rem 1rem;
+    border-radius: 20px;
+    font-size: 0.85rem;
+    font-weight: bold;
+}
+
+.pricing-card h2 {
+    font-size: 1.8rem;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.pricing-card .description {
+    color: #7f8c8d;
+    margin-bottom: 1.5rem;
+    min-height: 3rem;
+}
+
+.price {
+    margin: 1.5rem 0;
+    padding: 1rem 0;
+    border-top: 2px solid #ecf0f1;
+    border-bottom: 2px solid #ecf0f1;
+}
+
+.price .amount {
+    font-size: 2.5rem;
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.price .period {
+    font-size: 1rem;
+    color: #7f8c8d;
+}
+
+.features {
+    list-style: none;
+    padding: 0;
+    margin: 2rem 0;
+}
+
+.features li {
+    padding: 0.75rem 0;
+    color: #2c3e50;
+    border-bottom: 1px solid #ecf0f1;
+}
+
+.features li:last-child {
+    border-bottom: none;
+}
+
+.btn-subscribe {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: linear-gradient(135deg, #27ae60, #229954);
+    color: white;
+}
+
+.btn-subscribe:hover:not(:disabled) {
+    transform: scale(1.05);
+    box-shadow: 0 5px 15px rgba(39, 174, 96, 0.3);
+}
+
+.btn-subscribe.btn-featured {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+}
+
+.btn-subscribe.btn-featured:hover {
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-subscribe:disabled {
+    background: #95a5a6;
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.pricing-faq {
+    max-width: 800px;
+    margin: 4rem auto 0;
+    padding-top: 3rem;
+    border-top: 2px solid #ecf0f1;
+}
+
+.pricing-faq h2 {
+    text-align: center;
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 2rem;
+}
+
+.faq-item {
+    background: #f8f9fa;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 1rem;
+}
+
+.faq-item h3 {
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+    font-size: 1.2rem;
+}
+
+.faq-item p {
+    color: #7f8c8d;
+    line-height: 1.6;
+    margin: 0;
+}
+
+@media (max-width: 768px) {
+    .pricing-header h1 {
+        font-size: 2rem;
+    }
+    
+    .pricing-cards {
+        grid-template-columns: 1fr;
+    }
+    
+    .price .amount {
+        font-size: 2rem;
+    }
+}
+</style>
+{% endblock %}

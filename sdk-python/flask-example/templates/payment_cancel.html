@@ -1,0 +1,240 @@
+{% extends "base.html" %}
+
+{% block title %}Pagamento Cancelado - CredGuard{% endblock %}
+
+{% block content %}
+<div class="cancel-page">
+    <div class="cancel-card">
+        <div class="cancel-icon">✕</div>
+        
+        <h1>Pagamento Cancelado</h1>
+        <p class="cancel-message">
+            Seu pagamento foi cancelado. Nenhuma cobrança foi realizada.
+        </p>
+
+        <div class="info-section">
+            <h2>O que aconteceu?</h2>
+            <p>
+                Você cancelou o processo de pagamento ou fechou a janela de checkout antes de completar a transação.
+            </p>
+        </div>
+
+        <div class="next-steps">
+            <h2>O que fazer agora?</h2>
+            <ul>
+                <li>
+                    <strong>Tentar novamente:</strong> Volte para a página de preços e selecione um plano
+                </li>
+                <li>
+                    <strong>Dúvidas sobre pagamento?</strong> Entre em contato com nosso suporte
+                </li>
+                <li>
+                    <strong>Explorar recursos gratuitos:</strong> Conheça nossa documentação e exemplos
+                </li>
+            </ul>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('pricing') }}" class="btn btn-primary">
+                Ver Planos Novamente
+            </a>
+            <a href="{{ url_for('index') }}" class="btn btn-secondary">
+                Voltar ao Início
+            </a>
+        </div>
+
+        <div class="help-section">
+            <p>
+                <strong>Precisa de ajuda?</strong><br>
+                Entre em contato com nosso suporte em 
+                <a href="mailto:suporte@credguard.com">suporte@credguard.com</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.cancel-page {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.cancel-card {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.cancel-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    margin: 0 auto 2rem;
+    animation: shakeIn 0.5s ease-out;
+}
+
+@keyframes shakeIn {
+    0%, 100% {
+        transform: translateX(0);
+    }
+    10%, 30%, 50%, 70%, 90% {
+        transform: translateX(-5px);
+    }
+    20%, 40%, 60%, 80% {
+        transform: translateX(5px);
+    }
+}
+
+.cancel-card h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.cancel-message {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+.info-section {
+    background: #fff3cd;
+    border-left: 4px solid #ffc107;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.info-section h2 {
+    font-size: 1.3rem;
+    color: #856404;
+    margin-bottom: 0.5rem;
+}
+
+.info-section p {
+    color: #856404;
+    line-height: 1.6;
+    margin: 0;
+}
+
+.next-steps {
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.next-steps h2 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.next-steps ul {
+    list-style: none;
+    padding: 0;
+}
+
+.next-steps li {
+    margin-bottom: 1rem;
+    padding-left: 1.5rem;
+    position: relative;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.next-steps li:before {
+    content: "→";
+    position: absolute;
+    left: 0;
+    color: #3498db;
+    font-weight: bold;
+}
+
+.next-steps li strong {
+    color: #3498db;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.btn {
+    flex: 1;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: white;
+    color: #3498db;
+    border: 2px solid #3498db;
+}
+
+.btn-secondary:hover {
+    background: #3498db;
+    color: white;
+}
+
+.help-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #ecf0f1;
+}
+
+.help-section p {
+    color: #7f8c8d;
+    line-height: 1.6;
+}
+
+.help-section a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.help-section a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .cancel-card {
+        padding: 2rem 1rem;
+    }
+    
+    .cancel-card h1 {
+        font-size: 1.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+}
+</style>
+{% endblock %}

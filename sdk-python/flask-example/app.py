@@ -12,6 +12,7 @@ from credguard import CredGuardClient, CredGuardAPIError, AuthenticationError, R
 from config import config
 from models import User, Job, init_db
 import time
+from stripe_routes import register_stripe_routes
 
 # Inicializar aplicação Flask
 app = Flask(__name__)
@@ -48,6 +49,9 @@ limiter = Limiter(
 )
 
 # Log do storage backend usado
+
+# Registrar rotas do Stripe
+register_stripe_routes(app)
 if redis_url.startswith('redis://'):
     print(f"✅ Rate limiting usando Redis: {redis_url.split('@')[-1] if '@' in redis_url else redis_url}")
 else:

@@ -1,0 +1,284 @@
+{% extends "base.html" %}
+
+{% block title %}Pagamento Confirmado - CredGuard{% endblock %}
+
+{% block content %}
+<div class="success-page">
+    <div class="success-card">
+        <div class="success-icon">✓</div>
+        
+        <h1>Pagamento Confirmado!</h1>
+        <p class="success-message">
+            Obrigado pela sua assinatura. Seu pagamento foi processado com sucesso.
+        </p>
+
+        {% if session %}
+        <div class="payment-details">
+            <h2>Detalhes do Pagamento</h2>
+            
+            <div class="detail-row">
+                <span class="label">Email:</span>
+                <span class="value">{{ session.customer_email or 'Não informado' }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">Valor:</span>
+                <span class="value">{{ session.amount_formatted }}</span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">Status:</span>
+                <span class="value status-{{ session.payment_status }}">
+                    {{ session.payment_status_text }}
+                </span>
+            </div>
+            
+            <div class="detail-row">
+                <span class="label">ID da Sessão:</span>
+                <span class="value code">{{ session.id }}</span>
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="next-steps">
+            <h2>Próximos Passos</h2>
+            <ol>
+                <li>
+                    <strong>Acesse seu Dashboard</strong><br>
+                    Visualize suas estatísticas e análises de CPF
+                </li>
+                <li>
+                    <strong>Faça seu primeiro upload</strong><br>
+                    Comece a analisar CPFs imediatamente
+                </li>
+                <li>
+                    <strong>Configure webhooks</strong><br>
+                    Receba notificações em tempo real (opcional)
+                </li>
+            </ol>
+        </div>
+
+        <div class="action-buttons">
+            <a href="{{ url_for('dashboard') }}" class="btn btn-primary">
+                Ir para Dashboard
+            </a>
+            <a href="{{ url_for('upload') }}" class="btn btn-secondary">
+                Fazer Upload
+            </a>
+        </div>
+
+        <div class="help-section">
+            <p>
+                <strong>Precisa de ajuda?</strong><br>
+                Entre em contato com nosso suporte em 
+                <a href="mailto:suporte@credguard.com">suporte@credguard.com</a>
+            </p>
+        </div>
+    </div>
+</div>
+
+<style>
+.success-page {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1rem;
+}
+
+.success-card {
+    background: white;
+    border-radius: 12px;
+    padding: 3rem 2rem;
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.success-icon {
+    width: 80px;
+    height: 80px;
+    background: linear-gradient(135deg, #27ae60, #229954);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 3rem;
+    color: white;
+    margin: 0 auto 2rem;
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+    }
+    to {
+        transform: scale(1);
+    }
+}
+
+.success-card h1 {
+    font-size: 2rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+}
+
+.success-message {
+    font-size: 1.1rem;
+    color: #7f8c8d;
+    margin-bottom: 2rem;
+}
+
+.payment-details {
+    background: #f8f9fa;
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.payment-details h2 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.75rem 0;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.detail-row:last-child {
+    border-bottom: none;
+}
+
+.detail-row .label {
+    font-weight: bold;
+    color: #2c3e50;
+}
+
+.detail-row .value {
+    color: #7f8c8d;
+}
+
+.detail-row .value.code {
+    font-family: 'Courier New', monospace;
+    font-size: 0.9rem;
+}
+
+.detail-row .value.status-paid {
+    color: #27ae60;
+    font-weight: bold;
+}
+
+.detail-row .value.status-unpaid {
+    color: #e74c3c;
+    font-weight: bold;
+}
+
+.next-steps {
+    margin: 2rem 0;
+    text-align: left;
+}
+
+.next-steps h2 {
+    font-size: 1.3rem;
+    color: #2c3e50;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.next-steps ol {
+    padding-left: 1.5rem;
+}
+
+.next-steps li {
+    margin-bottom: 1rem;
+    color: #2c3e50;
+    line-height: 1.6;
+}
+
+.next-steps li strong {
+    color: #3498db;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 1rem;
+    margin: 2rem 0;
+}
+
+.btn {
+    flex: 1;
+    padding: 1rem;
+    font-size: 1rem;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 8px;
+    transition: all 0.3s ease;
+    display: inline-block;
+    text-align: center;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #3498db, #2980b9);
+    color: white;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(52, 152, 219, 0.3);
+}
+
+.btn-secondary {
+    background: white;
+    color: #3498db;
+    border: 2px solid #3498db;
+}
+
+.btn-secondary:hover {
+    background: #3498db;
+    color: white;
+}
+
+.help-section {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 2px solid #ecf0f1;
+}
+
+.help-section p {
+    color: #7f8c8d;
+    line-height: 1.6;
+}
+
+.help-section a {
+    color: #3498db;
+    text-decoration: none;
+}
+
+.help-section a:hover {
+    text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+    .success-card {
+        padding: 2rem 1rem;
+    }
+    
+    .success-card h1 {
+        font-size: 1.5rem;
+    }
+    
+    .action-buttons {
+        flex-direction: column;
+    }
+    
+    .detail-row {
+        flex-direction: column;
+        gap: 0.25rem;
+    }
+}
+</style>
+{% endblock %}

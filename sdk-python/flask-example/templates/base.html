@@ -12,6 +12,7 @@
             <h1 class="logo">🛡️ CredGuard</h1>
             <ul class="nav-links">
                 <li><a href="{{ url_for('index') }}">Início</a></li>
+                <li><a href="{{ url_for('pricing') }}">Preços</a></li>
                 {% if current_user.is_authenticated %}
                     <li><a href="{{ url_for('dashboard') }}">Dashboard</a></li>
                     <li><a href="{{ url_for('upload') }}">Upload</a></li>
